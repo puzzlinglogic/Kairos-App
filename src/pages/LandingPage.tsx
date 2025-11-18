@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { FloatingShape } from '../components/FloatingShape';
-import { Sparkles, TrendingUp, Zap } from 'lucide-react';
+import { Sparkles, TrendingUp, Zap, ArrowRight } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
   return (
@@ -26,62 +26,38 @@ export const LandingPage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="container-narrow py-16 md:py-24">
-        <div className="text-center max-w-4xl mx-auto relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/40 backdrop-blur-sm border border-kairos-border/30 mb-6">
+      <section className="relative z-10 mx-auto max-w-6xl px-6 md:px-10 pt-12 md:pt-20 pb-16 text-center">
+        <div className="max-w-4xl mx-auto">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 rounded-full bg-kairos-light/50 backdrop-blur-sm border border-kairos-border/50 px-4 py-2 shadow-sm mb-8">
             <Sparkles className="w-4 h-4 text-kairos-gold" />
-            <span className="text-sm font-semibold text-kairos-dark">
-              Discover Your Patterns
+            <span className="text-sm font-medium text-kairos-dark">
+              Your spiritual mirror awaits
             </span>
           </div>
 
-          <h1 className="h1 mb-6 text-kairos-dark">
-            Journal Your Way to{' '}
-            <span className="bg-gradient-to-r from-kairos-gold to-kairos-purple bg-clip-text text-transparent">
-              Self-Discovery
+          {/* Headline */}
+          <h1 className="text-5xl md:text-7xl font-bold leading-tight font-serif mb-6">
+            <span className="text-kairos-dark">You're living in patterns </span>
+            <span className="bg-gradient-to-r from-kairos-gold via-kairos-pink to-kairos-purple bg-clip-text text-transparent">
+              you can't see.
             </span>
+            <br />
+            <span className="text-kairos-dark">Kairos reveals them.</span>
           </h1>
 
-          <p className="body-large text-muted mb-8 max-w-2xl mx-auto">
-            Kairos helps you recognize the subtle patterns in your daily life.
-            Write, reflect, and unlock insights you never knew existed.
+          {/* Subheading */}
+          <p className="text-xl md:text-2xl text-kairos-dark/70 max-w-3xl mx-auto leading-relaxed mb-12">
+            A guided journal that helps you recognize cycles, make aligned decisions, and move with deeper intention
           </p>
 
-          <div className="flex items-center justify-center gap-4 mb-12">
-            <Button variant="primary">
+          {/* CTA Button */}
+          <div className="flex justify-center items-center mb-12">
+            <button className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple text-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl hover:shadow-kairos-gold/40 transform hover:scale-105 transition-all duration-300 whitespace-nowrap">
+              <Sparkles className="w-5 h-5" />
               Start Your Journey
-            </Button>
-            <Button variant="secondary">
-              Learn More
-            </Button>
-          </div>
-
-          {/* Hero Card Preview */}
-          <div className="max-w-2xl mx-auto">
-            <Card variant="glass" className="text-left">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-button flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">K</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-kairos-dark">Today's Entry</p>
-                  <p className="text-sm text-muted">Day 7 Streak 🔥</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="What's on your mind today?"
-                  className="input"
-                  disabled
-                />
-                <textarea
-                  placeholder="Does this remind you of anything?"
-                  className="textarea"
-                  disabled
-                />
-              </div>
-            </Card>
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>
