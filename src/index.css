@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core Brand Colors */
+    --primary-dark: #1C132E;
+    --primary-purple: #2A1E4C;
+    --accent-gold: #E9C46A;
+    --neutral-light: #F8F5F1;
+    --neutral-border: #DAD0E7;
+    --neutral-pink: #EFD7DA;
+  }
+
+  * {
+    @apply border-kairos-border;
+  }
+
+  body {
+    @apply font-sans text-kairos-dark antialiased;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  /* Typography Classes */
+  .h1 {
+    @apply text-5xl md:text-7xl font-bold leading-tight font-serif;
+  }
+
+  .h2 {
+    @apply text-3xl md:text-4xl font-bold font-serif;
+  }
+
+  .h3 {
+    @apply text-xl font-semibold font-serif;
+  }
+
+  .body-large {
+    @apply text-xl md:text-2xl leading-relaxed;
+  }
+
+  .body-base {
+    @apply text-base md:text-lg leading-relaxed;
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-full
+           bg-gradient-button text-white px-6 py-3 font-semibold
+           shadow-lg hover:shadow-xl hover:shadow-kairos-gold/30
+           transform hover:scale-105 transition-all duration-300;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center h-10 min-w-[96px] px-4
+           rounded-full border border-kairos-border bg-kairos-light/60
+           text-kairos-dark text-sm font-semibold transition-colors
+           hover:bg-kairos-light;
+  }
+
+  .btn-ghost {
+    @apply text-sm text-kairos-dark/70 hover:text-kairos-dark
+           transition-colors px-3 py-1 rounded-full
+           border border-kairos-border/60 bg-white/40
+           hover:bg-white/60;
+  }
+
+  /* Card Styles */
+  .card {
+    @apply bg-kairos-light/60 backdrop-blur-sm
+           border border-kairos-border/50 rounded-2xl
+           p-6 shadow-lg;
+  }
+
+  .card-glass {
+    @apply bg-white/40 backdrop-blur-sm
+           border border-white/30 rounded-2xl
+           p-6 shadow-lg;
+  }
+
+  .pattern-card {
+    @apply rounded-xl border border-kairos-border/30
+           bg-white/40 backdrop-blur-sm p-4 shadow-sm
+           hover:shadow-md transition-shadow;
+  }
+
+  /* Input Styles */
+  .input {
+    @apply w-full rounded-xl border border-kairos-border/30
+           bg-white/50 backdrop-blur-sm p-3 outline-none
+           focus:ring-2 focus:ring-kairos-gold
+           text-kairos-dark placeholder-kairos-dark/50
+           transition-all;
+  }
+
+  .textarea {
+    @apply w-full resize-y rounded-xl border border-kairos-border/30
+           bg-white/50 backdrop-blur-sm p-4 outline-none
+           focus:ring-2 focus:ring-kairos-gold
+           text-kairos-dark placeholder-kairos-dark/50
+           min-h-[120px] transition-all;
+  }
+
+  /* Layout Utilities */
+  .container-max {
+    @apply max-w-6xl mx-auto px-6 md:px-10;
+  }
+
+  .container-narrow {
+    @apply max-w-5xl mx-auto px-4;
+  }
+
+  .container-content {
+    @apply max-w-3xl mx-auto px-6 md:px-10;
+  }
+
+  /* Background Gradients */
+  .bg-primary-gradient {
+    @apply bg-gradient-primary;
+  }
+
+  .bg-landing-gradient {
+    @apply bg-gradient-landing;
+  }
+}
+
+@layer utilities {
+  .text-primary {
+    @apply text-kairos-dark;
+  }
+
+  .text-muted {
+    @apply text-kairos-dark/70;
+  }
+
+  .text-subtle {
+    @apply text-kairos-dark/60;
+  }
+
+  .transition-smooth {
+    @apply transition-all duration-300;
+  }
+
+  .hover-lift {
+    @apply transform hover:scale-105 transition-transform;
+  }
+
+  .glass {
+    @apply backdrop-blur-sm;
+  }
+}
