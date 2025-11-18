@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { createEntry } from '../lib/entries';
 import { Sparkles, ImagePlus, CheckCircle, Loader } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
+import { AppNav } from '../components/AppNav';
 
 export const NewEntryPage: React.FC = () => {
   const [entryText, setEntryText] = useState('');
@@ -76,7 +77,9 @@ export const NewEntryPage: React.FC = () => {
       <FloatingShape className="top-10 -left-20" animation="slow" size={400} />
       <FloatingShape className="top-1/3 right-10" animation="medium" size={350} />
 
-      <div className="relative z-10 container-content py-8 md:py-12">
+      <AppNav showBackToTimeline />
+
+      <div className="relative z-10 container-content py-4 md:py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kairos-light/50 backdrop-blur-sm border border-kairos-border/50 mb-4">

@@ -13,6 +13,7 @@ import {
 } from '../lib/helpers';
 import { Sparkles, Plus, Calendar, Flame, Loader, Zap } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
+import { AppNav } from '../components/AppNav';
 
 export const TimelinePage: React.FC = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -73,7 +74,9 @@ export const TimelinePage: React.FC = () => {
       <FloatingShape className="top-10 -left-20" animation="slow" size={400} />
       <FloatingShape className="bottom-20 right-10" animation="medium" size={350} />
 
-      <div className="relative z-10 container-content py-8 md:py-12">
+      <AppNav />
+
+      <div className="relative z-10 container-content py-4 md:py-8">
         {/* Angel Number Celebration */}
         {showAngelMessage && angelMessage && (
           <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50 animate-pulse">
