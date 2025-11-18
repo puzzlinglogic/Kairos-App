@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserStats, getFirstEntryDate } from '../lib/entries';
 import { generatePatterns, getUserPatterns, hasPatternsGenerated } from '../lib/patterns';
 import { hasUnlockedPatterns } from '../lib/helpers';
-import type { Pattern } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+import type { Pattern, Profile } from '../lib/supabase';
 import type { PatternInsight } from '../lib/ai';
-import { Sparkles, Loader, Zap, TrendingUp, Heart, Calendar, Brain, Lock } from 'lucide-react';
+import { Sparkles, Loader, Zap, TrendingUp, Heart, Calendar, Brain, Lock, Crown } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 
@@ -17,8 +18,11 @@ export const PatternsPage: React.FC = () => {
   const [hasPatterns, setHasPatterns] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [error, setError] = useState('');
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const loadData = async () => {
@@ -28,6 +32,21 @@ export const PatternsPage: React.FC = () => {
       }
 
       try {
+        // Fetch profile for subscription status
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profileData) {
+          setProfile(profileData);
+          setHasActiveSubscription(
+            profileData.subscription_status === 'active' ||
+            profileData.subscription_status === 'trialing'
+          );
+        }
+
         const [stats, firstDate, patternsExist, userPatterns] = await Promise.all([
           getUserStats(user.id),
           getFirstEntryDate(user.id),
@@ -130,6 +149,63 @@ export const PatternsPage: React.FC = () => {
               <Sparkles className="w-5 h-5" />
               Back to Timeline
             </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Unlocked but no subscription - show paywall
+  if (unlocked && !hasActiveSubscription) {
+    const success = searchParams.get('success') === 'true';
+
+    return (
+      <div className="min-h-screen bg-gradient-primary relative overflow-hidden">
+        <FloatingShape className="top-10 -left-20" animation="slow" size={400} />
+        <FloatingShape className="bottom-20 right-10" animation="medium" size={350} />
+        <AppNav />
+        <div className="relative z-10 container-content py-8 md:py-12">
+          <div className="card-glass text-center py-16 max-w-2xl mx-auto border-2 border-kairos-gold/30">
+            {success ? (
+              <>
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple mb-6">
+                  <Sparkles className="w-10 h-10 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold font-serif text-kairos-dark mb-3">
+                  Welcome to Premium!
+                </h2>
+                <p className="text-kairos-dark/70 mb-6">
+                  Your subscription is being activated. Refresh the page in a moment to access your patterns.
+                </p>
+                <button onClick={() => window.location.reload()} className="btn-primary">
+                  <Zap className="w-5 h-5" />
+                  Refresh Page
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple mb-6">
+                  <Crown className="w-10 h-10 text-white" />
+                </div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple border-2 border-kairos-gold mb-4">
+                  <Zap className="w-4 h-4 text-white" />
+                  <span className="text-sm font-semibold text-white">777 - Patterns Unlocked</span>
+                </div>
+                <h2 className="text-2xl font-bold font-serif text-kairos-dark mb-3">
+                  Subscribe to Access Your Patterns
+                </h2>
+                <p className="text-kairos-dark/70 mb-6 max-w-md mx-auto">
+                  You've unlocked pattern detection! Subscribe for $3.33/month to access AI-powered insights from your journal.
+                </p>
+                <button onClick={() => navigate('/app/subscribe')} className="btn-primary mb-4">
+                  <Crown className="w-5 h-5" />
+                  Subscribe Now
+                </button>
+                <p className="text-xs text-kairos-dark/50">
+                  333 angel number • Cancel anytime
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>

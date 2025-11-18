@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Home } from 'lucide-react';
+import { LogOut, Home, Settings } from 'lucide-react';
 
 interface AppNavProps {
   showBackToTimeline?: boolean;
@@ -38,13 +38,12 @@ export const AppNav: React.FC<AppNavProps> = ({ showBackToTimeline = false }) =>
               </button>
             </Link>
           )}
-          <button
-            onClick={handleSignOut}
-            className="btn-ghost flex items-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </button>
+          <Link to="/app/settings">
+            <button className="btn-ghost flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Settings
+            </button>
+          </Link>
         </div>
       </div>
     </nav>

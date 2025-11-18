@@ -15,6 +15,12 @@ export interface Profile {
   email: string;
   created_at: string;
   updated_at: string;
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
+  subscription_status?: 'free' | 'active' | 'canceled' | 'past_due' | 'trialing';
+  subscription_tier?: 'free' | 'premium';
+  subscription_started_at?: string;
+  subscription_ends_at?: string;
 }
 
 export interface Entry {

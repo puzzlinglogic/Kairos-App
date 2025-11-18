@@ -7,6 +7,8 @@ import { AppPage } from './pages/AppPage';
 import { NewEntryPage } from './pages/NewEntryPage';
 import { TimelinePage } from './pages/TimelinePage';
 import { PatternsPage } from './pages/PatternsPage';
+import SubscribePage from './pages/SubscribePage';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
           <Route path="/app/timeline" element={<TimelinePage />} />
           <Route path="/app/new" element={<NewEntryPage />} />
           <Route path="/app/patterns" element={<PatternsPage />} />
+          <Route path="/app/subscribe" element={<SubscribePage />} />
+          <Route path="/app/settings" element={<SettingsPage />} />
         </Routes>
       </AuthProvider>
     </Router>
