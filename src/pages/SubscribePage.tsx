@@ -109,9 +109,9 @@ export default function SubscribePage() {
               <span className="text-5xl font-bold text-kairos-gold">
                 ${PRICING.monthly.toFixed(2)}
               </span>
-              <span className="text-kairos-light/60">/month</span>
+              <span className="text-kairos-dark/70">/month</span>
             </div>
-            <p className="text-kairos-light/60 mt-2 text-sm">
+            <p className="text-kairos-dark/60 mt-2 text-sm">
               Cancel anytime, keep your patterns forever
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function SubscribePage() {
                 <div className="mt-0.5">
                   <Check className="w-5 h-5 text-kairos-gold" />
                 </div>
-                <span className="text-kairos-light">{feature}</span>
+                <span className="text-kairos-dark">{feature}</span>
               </div>
             ))}
           </div>
@@ -148,7 +148,7 @@ export default function SubscribePage() {
           </button>
 
           {/* Trust indicators */}
-          <div className="mt-6 pt-6 border-t border-kairos-border flex items-center justify-center gap-4 text-xs text-kairos-light/60">
+          <div className="mt-6 pt-6 border-t border-kairos-border flex items-center justify-center gap-4 text-xs text-kairos-dark/50">
             <div className="flex items-center gap-1">
               <Lock className="w-3 h-3" />
               Secure payment
