@@ -47,12 +47,13 @@ export default function SubscribePage() {
         throw new Error('Stripe failed to load');
       }
 
-      const { error: stripeError } = await stripe.redirectToCheckout({
+      // @ts-ignore - redirectToCheckout exists but may not be in type definitions
+      const result = await stripe.redirectToCheckout({
         sessionId: data.sessionId,
       });
 
-      if (stripeError) {
-        throw stripeError;
+      if (result.error) {
+        throw result.error;
       }
     } catch (err: any) {
       console.error('Subscription error:', err);

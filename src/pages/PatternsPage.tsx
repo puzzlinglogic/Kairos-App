@@ -5,7 +5,7 @@ import { getUserStats, getFirstEntryDate } from '../lib/entries';
 import { generatePatterns, getUserPatterns, hasPatternsGenerated } from '../lib/patterns';
 import { hasUnlockedPatterns } from '../lib/helpers';
 import { supabase } from '../lib/supabase';
-import type { Pattern, Profile } from '../lib/supabase';
+import type { Pattern } from '../lib/supabase';
 import type { PatternInsight } from '../lib/ai';
 import { Sparkles, Loader, Zap, TrendingUp, Heart, Calendar, Brain, Lock, Crown } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
@@ -18,7 +18,6 @@ export const PatternsPage: React.FC = () => {
   const [hasPatterns, setHasPatterns] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [error, setError] = useState('');
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -40,7 +39,6 @@ export const PatternsPage: React.FC = () => {
           .single();
 
         if (profileData) {
-          setProfile(profileData);
           setHasActiveSubscription(
             profileData.subscription_status === 'active' ||
             profileData.subscription_status === 'trialing'

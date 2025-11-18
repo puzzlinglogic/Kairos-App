@@ -1,24 +1,12 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Home, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Home, Settings } from 'lucide-react';
 
 interface AppNavProps {
   showBackToTimeline?: boolean;
 }
 
 export const AppNav: React.FC<AppNavProps> = ({ showBackToTimeline = false }) => {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   return (
     <nav className="container-content py-4">
