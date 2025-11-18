@@ -179,6 +179,16 @@ export const TimelinePage: React.FC = () => {
                   {entry.entry_text}
                 </p>
 
+                {entry.photo_url && (
+                  <div className="mb-4 rounded-xl overflow-hidden">
+                    <img
+                      src={entry.photo_url}
+                      alt="Entry photo"
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                )}
+
                 {entry.guided_response && (
                   <div className="pt-4 border-t border-kairos-border/30">
                     <div className="flex items-center gap-2 mb-2">

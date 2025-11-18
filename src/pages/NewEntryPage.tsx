@@ -1,19 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { createEntry } from '../lib/entries';
-import { Sparkles, ImagePlus, CheckCircle, Loader } from 'lucide-react';
+import { uploadPhoto, compressImage } from '../lib/storage';
+import { Sparkles, ImagePlus, CheckCircle, Loader, X } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 
 export const NewEntryPage: React.FC = () => {
   const [entryText, setEntryText] = useState('');
   const [guidedResponse, setGuidedResponse] = useState('');
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      // Compress image
+      const compressedFile = await compressImage(file);
+      setPhoto(compressedFile);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (err) {
+      setError('Failed to process image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhoto(null);
+    setPhotoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,10 +80,18 @@ export const NewEntryPage: React.FC = () => {
     setSaving(true);
 
     try {
+      let photoUrl: string | undefined;
+
+      // Upload photo if present
+      if (photo) {
+        photoUrl = await uploadPhoto(user.id, photo);
+      }
+
       await createEntry(
         user.id,
         entryText.trim(),
-        guidedResponse.trim() || undefined
+        guidedResponse.trim() || undefined,
+        photoUrl
       );
 
       // Show success state
@@ -144,16 +200,58 @@ export const NewEntryPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Photo Upload Placeholder */}
+          {/* Photo Upload */}
           <div className="card-glass">
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-3 py-4 text-kairos-dark/60 hover:text-kairos-dark transition-colors"
-              disabled
-            >
-              <ImagePlus className="w-5 h-5" />
-              <span className="text-sm font-medium">Add photo (coming soon)</span>
-            </button>
+            {photoPreview ? (
+              <div className="space-y-3">
+                <div className="relative rounded-xl overflow-hidden">
+                  <img
+                    src={photoPreview}
+                    alt="Entry photo"
+                    className="w-full h-auto max-h-96 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="absolute top-2 right-2 p-2 rounded-full bg-kairos-dark/80 text-white hover:bg-kairos-dark transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className="text-xs text-kairos-dark/60 text-center">
+                  Photo will be uploaded with your entry
+                </p>
+              </div>
+            ) : (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handlePhotoSelect}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-3 py-4 text-kairos-dark/60 hover:text-kairos-dark transition-colors"
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <>
+                      <Loader className="w-5 h-5 animate-spin" />
+                      <span className="text-sm font-medium">Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ImagePlus className="w-5 h-5" />
+                      <span className="text-sm font-medium">Add photo</span>
+                    </>
+                  )}
+                </button>
+              </>
+            )}
           </div>
 
           {/* Error Message */}
