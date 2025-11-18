@@ -16,11 +16,9 @@ export const generatePatterns = async (userId: string): Promise<PatternInsight[]
     }
 
     // Tier 1: Quick analysis (Haiku)
-    console.log('Running Tier 1 analysis...');
     const quickAnalysis = await analyzePatternsQuick(entries);
 
     // Tier 2: Deep insights (Sonnet)
-    console.log('Running Tier 2 analysis...');
     const insights = await analyzePatternsDeep(entries, quickAnalysis);
 
     // Save patterns to database
