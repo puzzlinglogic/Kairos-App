@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { FloatingShape } from '../components/FloatingShape';
@@ -19,8 +20,12 @@ export const LandingPage: React.FC = () => {
             Kairos
           </h1>
           <div className="flex items-center gap-4">
-            <Button variant="ghost">Sign In</Button>
-            <Button variant="primary">Get Started</Button>
+            <Link to="/signin">
+              <Button variant="ghost">Sign In</Button>
+            </Link>
+            <Link to="/signup">
+              <Button variant="primary">Get Started</Button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -53,11 +58,13 @@ export const LandingPage: React.FC = () => {
 
           {/* CTA Button */}
           <div className="flex justify-center items-center mb-12">
-            <button className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple text-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl hover:shadow-kairos-gold/40 transform hover:scale-105 transition-all duration-300 whitespace-nowrap">
-              <Sparkles className="w-5 h-5" />
-              Start Your Journey
-              <ArrowRight className="w-5 h-5" />
-            </button>
+            <Link to="/signup">
+              <button className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple text-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl hover:shadow-kairos-gold/40 transform hover:scale-105 transition-all duration-300 whitespace-nowrap">
+                <Sparkles className="w-5 h-5" />
+                Start Your Journey
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </Link>
           </div>
         </div>
       </section>
