@@ -179,7 +179,7 @@ export default function SettingsPage() {
                   Upgrade to Premium
                 </button>
                 <p className="text-xs text-kairos-dark/50 text-center">
-                  $3.33/month • 333 angel number
+                  $3.33/month
                 </p>
               </div>
             )}

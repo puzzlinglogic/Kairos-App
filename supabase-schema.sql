@@ -30,6 +30,7 @@ CREATE TABLE public.user_stats (
   longest_streak INTEGER DEFAULT 0,
   total_entries INTEGER DEFAULT 0,
   last_entry_date DATE,
+  last_entry_timestamp TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -120,47 +121,60 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Function to update streak
+-- Function to update streak (26-hour rolling window)
 CREATE OR REPLACE FUNCTION public.update_user_streak(p_user_id UUID)
 RETURNS void AS $$
 DECLARE
+  v_last_entry_timestamp TIMESTAMP WITH TIME ZONE;
   v_last_entry_date DATE;
   v_current_streak INTEGER;
   v_longest_streak INTEGER;
+  v_hours_since_last_entry NUMERIC;
 BEGIN
-  SELECT last_entry_date, current_streak, longest_streak
-  INTO v_last_entry_date, v_current_streak, v_longest_streak
+  SELECT last_entry_timestamp, last_entry_date, current_streak, longest_streak
+  INTO v_last_entry_timestamp, v_last_entry_date, v_current_streak, v_longest_streak
   FROM public.user_stats
   WHERE user_id = p_user_id;
 
-  -- If first entry or last entry was today, just increment total
-  IF v_last_entry_date IS NULL THEN
+  -- If first entry, initialize streak
+  IF v_last_entry_timestamp IS NULL THEN
     UPDATE public.user_stats
     SET current_streak = 1,
         longest_streak = 1,
         total_entries = total_entries + 1,
-        last_entry_date = CURRENT_DATE
+        last_entry_date = CURRENT_DATE,
+        last_entry_timestamp = NOW()
     WHERE user_id = p_user_id;
-  -- If last entry was yesterday, increment streak
-  ELSIF v_last_entry_date = CURRENT_DATE - 1 THEN
-    UPDATE public.user_stats
-    SET current_streak = current_streak + 1,
-        longest_streak = GREATEST(longest_streak, current_streak + 1),
-        total_entries = total_entries + 1,
-        last_entry_date = CURRENT_DATE
-    WHERE user_id = p_user_id;
-  -- If last entry was today, just increment total
-  ELSIF v_last_entry_date = CURRENT_DATE THEN
-    UPDATE public.user_stats
-    SET total_entries = total_entries + 1
-    WHERE user_id = p_user_id;
-  -- If last entry was before yesterday, reset streak
   ELSE
-    UPDATE public.user_stats
-    SET current_streak = 1,
-        total_entries = total_entries + 1,
-        last_entry_date = CURRENT_DATE
-    WHERE user_id = p_user_id;
+    -- Calculate hours since last entry
+    v_hours_since_last_entry := EXTRACT(EPOCH FROM (NOW() - v_last_entry_timestamp)) / 3600;
+
+    -- If last entry was today (same calendar day), just increment total
+    IF v_last_entry_date = CURRENT_DATE THEN
+      UPDATE public.user_stats
+      SET total_entries = total_entries + 1,
+          last_entry_timestamp = NOW()
+      WHERE user_id = p_user_id;
+
+    -- If within 26-hour window and different day, increment streak
+    ELSIF v_hours_since_last_entry <= 26 THEN
+      UPDATE public.user_stats
+      SET current_streak = current_streak + 1,
+          longest_streak = GREATEST(longest_streak, current_streak + 1),
+          total_entries = total_entries + 1,
+          last_entry_date = CURRENT_DATE,
+          last_entry_timestamp = NOW()
+      WHERE user_id = p_user_id;
+
+    -- If more than 26 hours, reset streak to 1
+    ELSE
+      UPDATE public.user_stats
+      SET current_streak = 1,
+          total_entries = total_entries + 1,
+          last_entry_date = CURRENT_DATE,
+          last_entry_timestamp = NOW()
+      WHERE user_id = p_user_id;
+    END IF;
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
