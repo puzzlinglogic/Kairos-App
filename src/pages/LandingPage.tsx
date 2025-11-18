@@ -43,7 +43,8 @@ export const LandingPage: React.FC = () => {
 
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl font-bold leading-tight font-serif mb-6">
-            <span className="text-kairos-dark">You're living in patterns </span>
+            <span className="text-kairos-dark">You're living in patterns</span>
+            <br />
             <span className="bg-gradient-to-r from-kairos-gold via-kairos-pink to-kairos-purple bg-clip-text text-transparent">
               you can't see.
             </span>
