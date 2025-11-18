@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserEntries, getUserStats } from '../lib/entries';
+import { getUserEntries, getUserStats, getFirstEntryDate } from '../lib/entries';
 import type { Entry, UserStats } from '../lib/supabase';
-import { Sparkles, Plus, Calendar, Flame, Loader } from 'lucide-react';
+import {
+  hasUnlockedPatterns,
+  getPatternUnlockProgress,
+  formatDate,
+  formatTime,
+  getStreakMilestone,
+  getAngelNumberMessage,
+} from '../lib/helpers';
+import { Sparkles, Plus, Calendar, Flame, Loader, Zap } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 
 export const TimelinePage: React.FC = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [firstEntryDate, setFirstEntryDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAngelMessage, setShowAngelMessage] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -17,12 +27,21 @@ export const TimelinePage: React.FC = () => {
       if (!user) return;
 
       try {
-        const [entriesData, statsData] = await Promise.all([
+        const [entriesData, statsData, firstDate] = await Promise.all([
           getUserEntries(user.id),
           getUserStats(user.id),
+          getFirstEntryDate(user.id),
         ]);
         setEntries(entriesData);
         setStats(statsData);
+        setFirstEntryDate(firstDate);
+
+        // Check for angel number milestones
+        const angelMessage = getAngelNumberMessage(statsData.total_entries);
+        if (angelMessage && statsData.total_entries > 0) {
+          setShowAngelMessage(true);
+          setTimeout(() => setShowAngelMessage(false), 5000);
+        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -44,12 +63,32 @@ export const TimelinePage: React.FC = () => {
     );
   }
 
+  const patternsUnlocked = hasUnlockedPatterns(stats?.total_entries || 0, firstEntryDate);
+  const progress = getPatternUnlockProgress(stats?.total_entries || 0, firstEntryDate);
+  const streakMessage = stats ? getStreakMilestone(stats.current_streak) : null;
+  const angelMessage = stats ? getAngelNumberMessage(stats.total_entries) : null;
+
   return (
     <div className="min-h-screen bg-gradient-primary relative overflow-hidden">
       <FloatingShape className="top-10 -left-20" animation="slow" size={400} />
       <FloatingShape className="bottom-20 right-10" animation="medium" size={350} />
 
       <div className="relative z-10 container-content py-8 md:py-12">
+        {/* Angel Number Celebration */}
+        {showAngelMessage && angelMessage && (
+          <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50 animate-pulse">
+            <div className="card-glass border-2 border-kairos-gold/50 px-6 py-4 shadow-2xl">
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-6 h-6 text-kairos-gold" />
+                <div>
+                  <p className="font-bold text-kairos-dark">{angelMessage.meaning}</p>
+                  <p className="text-sm text-kairos-dark/70">{angelMessage.description}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header with Stats */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold font-serif text-kairos-dark mb-4">
@@ -57,7 +96,7 @@ export const TimelinePage: React.FC = () => {
           </h1>
 
           {/* Stats */}
-          <div className="flex items-center justify-center gap-6 mb-6">
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
             {stats && stats.current_streak > 0 && (
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kairos-gold/20 border border-kairos-gold/30">
                 <Flame className="w-5 h-5 text-kairos-gold" />
@@ -75,7 +114,23 @@ export const TimelinePage: React.FC = () => {
                 </span>
               </div>
             )}
+
+            {patternsUnlocked && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple border-2 border-kairos-gold">
+                <Zap className="w-5 h-5 text-white" />
+                <span className="font-semibold text-white">
+                  777 - Patterns Unlocked
+                </span>
+              </div>
+            )}
           </div>
+
+          {/* Streak Milestone Message */}
+          {streakMessage && (
+            <div className="mb-4">
+              <p className="text-sm font-medium text-kairos-purple">{streakMessage}</p>
+            </div>
+          )}
 
           {/* New Entry Button */}
           <Link to="/app/new">
@@ -110,22 +165,14 @@ export const TimelinePage: React.FC = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2 text-sm text-kairos-dark/60">
                     <Calendar className="w-4 h-4" />
-                    {new Date(entry.created_at).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
+                    {formatDate(entry.created_at)}
                   </div>
                   <div className="text-xs text-kairos-dark/40">
-                    {new Date(entry.created_at).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
+                    {formatTime(entry.created_at)}
                   </div>
                 </div>
 
-                <p className="text-kairos-dark leading-relaxed mb-4">
+                <p className="text-kairos-dark leading-relaxed mb-4 whitespace-pre-wrap">
                   {entry.entry_text}
                 </p>
 
@@ -137,7 +184,7 @@ export const TimelinePage: React.FC = () => {
                         Reflection
                       </span>
                     </div>
-                    <p className="text-sm text-kairos-dark/70 leading-relaxed">
+                    <p className="text-sm text-kairos-dark/70 leading-relaxed whitespace-pre-wrap">
                       {entry.guided_response}
                     </p>
                   </div>
@@ -147,15 +194,65 @@ export const TimelinePage: React.FC = () => {
           </div>
         )}
 
-        {/* Pattern Detection Teaser */}
-        {entries.length >= 3 && entries.length < 7 && (
+        {/* 777 Pattern Detection Progress */}
+        {!patternsUnlocked && entries.length > 0 && (
           <div className="card-glass mt-8 text-center border-2 border-kairos-gold/30">
-            <Sparkles className="w-10 h-10 text-kairos-gold mx-auto mb-3" />
-            <h3 className="text-lg font-semibold font-serif text-kairos-dark mb-2">
-              Pattern detection unlocks at 7 entries
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple mb-4">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-xl font-bold font-serif text-kairos-dark mb-2">
+              777 - Pattern Detection
             </h3>
-            <p className="text-sm text-kairos-dark/70">
-              {7 - entries.length} more {7 - entries.length === 1 ? 'entry' : 'entries'} to go
+            <p className="text-sm text-kairos-dark/70 mb-4">
+              Unlock divine insights when you reach both milestones
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+              <div className="p-3 rounded-xl bg-kairos-purple/10 border border-kairos-purple/20">
+                <div className="text-2xl font-bold text-kairos-purple mb-1">
+                  {progress.entries}/7
+                </div>
+                <div className="text-xs text-kairos-dark/60">Entries</div>
+                {progress.entriesNeeded > 0 && (
+                  <div className="text-xs text-kairos-dark/50 mt-1">
+                    {progress.entriesNeeded} more to go
+                  </div>
+                )}
+              </div>
+
+              <div className="p-3 rounded-xl bg-kairos-gold/10 border border-kairos-gold/20">
+                <div className="text-2xl font-bold text-kairos-gold mb-1">
+                  {progress.days}/7
+                </div>
+                <div className="text-xs text-kairos-dark/60">Days</div>
+                {progress.daysNeeded > 0 && (
+                  <div className="text-xs text-kairos-dark/50 mt-1">
+                    {progress.daysNeeded} more to go
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <p className="text-xs text-kairos-dark/50 mt-4">
+              Keep journaling daily to unlock pattern insights
+            </p>
+          </div>
+        )}
+
+        {/* Patterns Unlocked Message */}
+        {patternsUnlocked && (
+          <div className="card-glass mt-8 text-center border-2 border-kairos-gold/50 bg-gradient-to-br from-kairos-gold/5 to-kairos-purple/5">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple mb-4 animate-pulse">
+              <Zap className="w-10 h-10 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold font-serif text-kairos-dark mb-2">
+              777 - Awakening Complete
+            </h3>
+            <p className="text-kairos-dark/70 mb-4">
+              You've unlocked pattern detection! AI-powered insights coming soon...
+            </p>
+            <p className="text-sm text-kairos-purple font-medium">
+              Divine timing. Inner wisdom. Patterns revealed.
             </p>
           </div>
         )}

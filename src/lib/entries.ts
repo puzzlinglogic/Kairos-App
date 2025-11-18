@@ -96,3 +96,23 @@ export const getUserStats = async (userId: string) => {
   if (error) throw error;
   return data;
 };
+
+/**
+ * Get first entry date for a user
+ */
+export const getFirstEntryDate = async (userId: string): Promise<string | null> => {
+  const { data, error } = await supabase
+    .from('entries')
+    .select('created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null; // No entries found
+    throw error;
+  }
+
+  return data?.created_at || null;
+};
