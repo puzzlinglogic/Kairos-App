@@ -4,30 +4,27 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    /* Core Brand Colors */
-    --primary-dark: #1C132E;
-    --primary-purple: #2A1E4C;
-    --accent-gold: #E9C46A;
-    --neutral-light: #F8F5F1;
-    --neutral-border: #DAD0E7;
-    --neutral-pink: #EFD7DA;
-  }
+:root {
+  /* Core Brand Colors */
+  --primary-dark: #1C132E;
+  --primary-purple: #2A1E4C;
+  --accent-gold: #E9C46A;
+  --neutral-light: #F8F5F1;
+  --neutral-border: #DAD0E7;
+  --neutral-pink: #EFD7DA;
+}
 
-  * {
-    @apply border-kairos-border;
-  }
+body {
+  font-family: Inter, system-ui, sans-serif;
+  color: #1C132E;
+  margin: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  body {
-    @apply font-sans text-kairos-dark antialiased;
-    margin: 0;
-    min-height: 100vh;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
-  }
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Crimson Pro', Georgia, serif;
 }
 
 @layer components {
