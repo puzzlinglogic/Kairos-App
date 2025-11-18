@@ -77,14 +77,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        // Invoice subscription can be a string ID or expanded object
-        const subscriptionId = typeof invoice.subscription === 'string'
-          ? invoice.subscription
-          : invoice.subscription?.id;
+        // Access subscription property - exists at runtime but may not be in type definitions
+        const subscription = (invoice as any).subscription;
+        const subscriptionId = typeof subscription === 'string'
+          ? subscription
+          : subscription?.id;
 
         if (subscriptionId) {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-          const userId = subscription.metadata.supabase_user_id;
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          const userId = sub.metadata.supabase_user_id;
 
           await supabase
             .from('profiles')
