@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { buffer } from 'micro';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-10-29.clover',
 });
 
 const supabase = createClient(
@@ -77,17 +77,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        const subscription = await stripe.subscriptions.retrieve(
-          invoice.subscription as string
-        );
-        const userId = subscription.metadata.supabase_user_id;
+        // Invoice subscription can be a string ID or expanded object
+        const subscriptionId = typeof invoice.subscription === 'string'
+          ? invoice.subscription
+          : invoice.subscription?.id;
 
-        await supabase
-          .from('profiles')
-          .update({
-            subscription_status: 'past_due',
-          })
-          .eq('id', userId);
+        if (subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const userId = subscription.metadata.supabase_user_id;
+
+          await supabase
+            .from('profiles')
+            .update({
+              subscription_status: 'past_due',
+            })
+            .eq('id', userId);
+        }
 
         break;
       }
