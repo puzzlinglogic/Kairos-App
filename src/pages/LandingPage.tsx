@@ -70,6 +70,61 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* How Patterns Emerge Section */}
+      <section className="relative z-10 mx-auto max-w-6xl px-6 md:px-10 py-16">
+        {/* Context Paragraph */}
+        <p className="text-base md:text-lg text-kairos-dark/80 leading-relaxed text-center max-w-3xl mx-auto mb-8">
+          Research shows that recognizing personal patterns improves decision-making, supports habit change, and enhances self-awareness. Whether you're optimizing performance, managing energy, or seeking clarity, understanding your patterns creates actionable insights.
+        </p>
+
+        {/* Section Title */}
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-kairos-dark mb-16 font-serif">
+          How Patterns Emerge
+        </h2>
+
+        {/* Three-Column Card Grid */}
+        <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+          {/* Journal Card */}
+          <div className="text-center group">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#9b59b6] to-[#6a4c93] flex items-center justify-center text-white text-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+              ✍️
+            </div>
+            <h3 className="text-xl font-semibold text-kairos-dark mb-3">
+              Journal
+            </h3>
+            <p className="text-kairos-dark/70 leading-relaxed">
+              Write freely about what feels significant. No pressure, just your authentic reflection.
+            </p>
+          </div>
+
+          {/* Reflect Card */}
+          <div className="text-center group">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#f4a261] to-[#e76f51] flex items-center justify-center text-white text-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+              🌙
+            </div>
+            <h3 className="text-xl font-semibold text-kairos-dark mb-3">
+              Reflect
+            </h3>
+            <p className="text-kairos-dark/70 leading-relaxed">
+              Over time, your entries create a map. Kairos naturally analyzes recurring themes and timings.
+            </p>
+          </div>
+
+          {/* Discover Card */}
+          <div className="text-center group">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#6a4c93] to-[#9b59b6] flex items-center justify-center text-white text-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+              ✨
+            </div>
+            <h3 className="text-xl font-semibold text-kairos-dark mb-3">
+              Discover
+            </h3>
+            <p className="text-kairos-dark/70 leading-relaxed">
+              Kairos finds the threads, the patterns you're living but haven't seen yet.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="container-narrow py-16">
         <div className="text-center mb-12">
