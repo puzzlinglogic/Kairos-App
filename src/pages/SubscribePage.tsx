@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles, Check, Zap, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { stripePromise, PRICING } from '../lib/stripe';
+import { PRICING } from '../lib/stripe';
 
 export default function SubscribePage() {
   const [loading, setLoading] = useState(false);
@@ -41,19 +41,11 @@ export default function SubscribePage() {
         throw new Error(data.error || 'Failed to create checkout session');
       }
 
-      // Redirect to Stripe Checkout
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe failed to load');
-      }
-
-      // @ts-ignore - redirectToCheckout exists but may not be in type definitions
-      const result = await stripe.redirectToCheckout({
-        sessionId: data.sessionId,
-      });
-
-      if (result.error) {
-        throw result.error;
+      // Redirect to Stripe Checkout URL
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
       }
     } catch (err: any) {
       console.error('Subscription error:', err);

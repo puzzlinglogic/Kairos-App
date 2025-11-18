@@ -69,7 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     });
 
-    return res.status(200).json({ sessionId: session.id });
+    return res.status(200).json({ url: session.url });
   } catch (error: any) {
     console.error('Error creating checkout session:', error);
     return res.status(500).json({ error: error.message });
