@@ -142,7 +142,7 @@ BEGIN
         last_entry_date = CURRENT_DATE
     WHERE user_id = p_user_id;
   -- If last entry was yesterday, increment streak
-  ELSIF v_last_entry_date = CURRENT_DATE - INTERVAL '1 day' THEN
+  ELSIF v_last_entry_date = CURRENT_DATE - 1 THEN
     UPDATE public.user_stats
     SET current_streak = current_streak + 1,
         longest_streak = GREATEST(longest_streak, current_streak + 1),
