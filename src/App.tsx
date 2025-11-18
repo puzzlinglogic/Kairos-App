@@ -6,6 +6,7 @@ import { SignInPage } from './pages/SignInPage';
 import { AppPage } from './pages/AppPage';
 import { NewEntryPage } from './pages/NewEntryPage';
 import { TimelinePage } from './pages/TimelinePage';
+import { PatternsPage } from './pages/PatternsPage';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/app" element={<AppPage />} />
           <Route path="/app/timeline" element={<TimelinePage />} />
           <Route path="/app/new" element={<NewEntryPage />} />
+          <Route path="/app/patterns" element={<PatternsPage />} />
         </Routes>
       </AuthProvider>
     </Router>

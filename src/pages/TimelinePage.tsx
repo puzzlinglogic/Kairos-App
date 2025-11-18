@@ -261,10 +261,16 @@ export const TimelinePage: React.FC = () => {
             <h3 className="text-2xl font-bold font-serif text-kairos-dark mb-2">
               777 - Awakening Complete
             </h3>
-            <p className="text-kairos-dark/70 mb-4">
-              You've unlocked pattern detection! AI-powered insights coming soon...
+            <p className="text-kairos-dark/70 mb-6">
+              You've unlocked AI-powered pattern detection. Discover insights hidden in your journal.
             </p>
-            <p className="text-sm text-kairos-purple font-medium">
+            <Link to="/app/patterns">
+              <button className="btn-primary">
+                <Zap className="w-5 h-5" />
+                Discover Your Patterns
+              </button>
+            </Link>
+            <p className="text-xs text-kairos-purple font-medium mt-4">
               Divine timing. Inner wisdom. Patterns revealed.
             </p>
           </div>

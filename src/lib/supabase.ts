@@ -40,7 +40,7 @@ export interface UserStats {
 export interface Pattern {
   id: string;
   user_id: string;
-  pattern_type: 'word_frequency' | 'theme' | 'cycle';
+  pattern_type: 'word_frequency' | 'theme' | 'cycle' | 'ai_insight';
   pattern_data: any;
   insight_text?: string;
   detected_at: string;
