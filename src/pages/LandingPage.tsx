@@ -256,12 +256,12 @@ export const LandingPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="container-narrow py-8 border-t border-kairos-border/30">
-        <div className="flex items-center justify-between text-sm text-muted">
-          <p>© 2025 Kairos. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-kairos-dark transition-colors">Privacy</a>
-            <a href="#" className="hover:text-kairos-dark transition-colors">Terms</a>
-            <a href="#" className="hover:text-kairos-dark transition-colors">Contact</a>
+        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 text-sm text-kairos-gold">
+          <p className="whitespace-nowrap">© 2025 Kairos. All rights reserved.</p>
+          <div className="flex gap-6 sm:gap-8">
+            <a href="#" className="hover:text-kairos-dark transition-colors whitespace-nowrap">Privacy</a>
+            <a href="#" className="hover:text-kairos-dark transition-colors whitespace-nowrap">Terms</a>
+            <a href="#" className="hover:text-kairos-dark transition-colors whitespace-nowrap">Contact</a>
           </div>
         </div>
       </footer>
