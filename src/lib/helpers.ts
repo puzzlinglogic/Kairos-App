@@ -1,9 +1,14 @@
-import { differenceInDays, parseISO, startOfDay } from 'date-fns';
-
 export const calculateDaysSinceFirstEntry = (firstEntryDate: string): number => {
-  const start = startOfDay(parseISO(firstEntryDate));
-  const now = startOfDay(new Date());
-  return differenceInDays(now, start) + 1;
+  const start = new Date(firstEntryDate);
+  start.setHours(0, 0, 0, 0);
+
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const diffTime = now.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays + 1;
 };
 
 export const hasUnlockedPatterns = (totalEntries: number, firstEntryDate: string | null): boolean => {
