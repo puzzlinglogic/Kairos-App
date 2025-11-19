@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserEntries, getUserStats, getFirstEntryDate } from '../lib/entries';
 import type { Entry, UserStats } from '../lib/supabase';
@@ -22,6 +22,7 @@ export const TimelinePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAngelMessage, setShowAngelMessage] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadData = async () => {
@@ -209,7 +210,10 @@ export const TimelinePage: React.FC = () => {
 
         {/* 777 Pattern Detection Progress */}
         {!patternsUnlocked && entries.length > 0 && (
-          <div className="card-glass mt-8 text-center border-2 border-kairos-gold/30">
+          <div
+            onClick={() => navigate('/app/patterns')}
+            className="card-glass mt-8 text-center border-2 border-kairos-gold/30 cursor-pointer hover:scale-[1.02] transition-transform active:scale-95"
+          >
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple mb-4">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
