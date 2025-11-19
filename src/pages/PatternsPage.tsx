@@ -3,11 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserStats, getFirstEntryDate } from '../lib/entries';
 import { generatePatterns, getUserPatterns, hasPatternsGenerated } from '../lib/patterns';
-import { hasUnlockedPatterns } from '../lib/helpers';
+import { hasUnlockedPatterns, getPatternUnlockProgress } from '../lib/helpers';
 import { supabase } from '../lib/supabase';
 import type { Pattern } from '../lib/supabase';
-import type { PatternInsight } from '../lib/supabase';
-import { Sparkles, Loader, Zap, TrendingUp, Heart, Calendar, Brain, Lock, Crown } from 'lucide-react';
+import { Sparkles, Loader, Zap, TrendingUp, Heart, Calendar, Brain, Lock, Crown, BookOpen } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 
@@ -19,6 +18,7 @@ export const PatternsPage: React.FC = () => {
   const [unlocked, setUnlocked] = useState(false);
   const [error, setError] = useState('');
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [progress, setProgress] = useState({ entries: 0, days: 0, entriesNeeded: 7, daysNeeded: 7 });
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -53,7 +53,10 @@ export const PatternsPage: React.FC = () => {
         ]);
 
         const isPatternsUnlocked = hasUnlockedPatterns(stats.total_entries, firstDate);
+        const unlockProgress = getPatternUnlockProgress(stats.total_entries, firstDate);
+
         setUnlocked(isPatternsUnlocked);
+        setProgress(unlockProgress);
         setHasPatterns(patternsExist);
         setPatterns(userPatterns);
       } catch (error) {
@@ -125,28 +128,153 @@ export const PatternsPage: React.FC = () => {
     );
   }
 
-  // Not unlocked yet
+  // Not unlocked yet - Show Progress Dashboard
   if (!unlocked) {
+    const entriesProgress = (progress.entries / 7) * 100;
+    const daysProgress = (progress.days / 7) * 100;
+
     return (
       <div className="min-h-screen bg-gradient-primary relative overflow-hidden">
         <FloatingShape className="top-10 -left-20" animation="slow" size={400} />
         <FloatingShape className="bottom-20 right-10" animation="medium" size={350} />
         <AppNav />
         <div className="relative z-10 container-content py-8 md:py-12">
-          <div className="card-glass text-center py-16 max-w-2xl mx-auto">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-kairos-border/30 mb-6">
-              <Lock className="w-10 h-10 text-kairos-dark/40" />
+          {/* Main Progress Card */}
+          <div className="card-glass max-w-3xl mx-auto mb-8">
+            <div className="text-center py-8 px-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-kairos-gold/20 to-kairos-purple/20 border-2 border-kairos-gold/30 mb-6">
+                <Lock className="w-10 h-10 text-kairos-gold" />
+              </div>
+              <h2 className="text-3xl font-bold font-serif text-kairos-dark mb-2">
+                777 Challenge Progress
+              </h2>
+              <p className="text-kairos-dark/70 mb-8">
+                Unlock AI-powered pattern insights by completing 7 entries AND 7 days of journaling
+              </p>
+
+              {/* Progress Bars */}
+              <div className="space-y-6 mb-8">
+                {/* Entries Progress */}
+                <div className="text-left">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-kairos-purple" />
+                      <span className="font-semibold text-kairos-dark">Journal Entries</span>
+                    </div>
+                    <span className="text-sm font-bold text-kairos-dark">
+                      {progress.entries} / 7
+                    </span>
+                  </div>
+                  <div className="w-full h-3 bg-kairos-border/30 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-kairos-purple to-kairos-pink transition-all duration-500"
+                      style={{ width: `${entriesProgress}%` }}
+                    />
+                  </div>
+                  {progress.entriesNeeded > 0 && (
+                    <p className="text-xs text-kairos-dark/60 mt-1">
+                      {progress.entriesNeeded} more {progress.entriesNeeded === 1 ? 'entry' : 'entries'} needed
+                    </p>
+                  )}
+                </div>
+
+                {/* Days Progress */}
+                <div className="text-left">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-kairos-gold" />
+                      <span className="font-semibold text-kairos-dark">Days of Practice</span>
+                    </div>
+                    <span className="text-sm font-bold text-kairos-dark">
+                      {progress.days} / 7
+                    </span>
+                  </div>
+                  <div className="w-full h-3 bg-kairos-border/30 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-kairos-gold to-kairos-purple transition-all duration-500"
+                      style={{ width: `${daysProgress}%` }}
+                    />
+                  </div>
+                  {progress.daysNeeded > 0 && (
+                    <p className="text-xs text-kairos-dark/60 mt-1">
+                      {progress.daysNeeded} more {progress.daysNeeded === 1 ? 'day' : 'days'} needed
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Call to Action */}
+              <button onClick={() => navigate('/app/timeline')} className="btn-primary w-full sm:w-auto">
+                <BookOpen className="w-5 h-5" />
+                Check In Today
+              </button>
             </div>
-            <h2 className="text-2xl font-bold font-serif text-kairos-dark mb-3">
-              Pattern Detection Locked
-            </h2>
-            <p className="text-kairos-dark/70 mb-6">
-              Complete 777 to unlock AI-powered pattern insights: 7 entries AND 7 days of journaling.
+          </div>
+
+          {/* Sneak Peek Section */}
+          <div className="max-w-3xl mx-auto">
+            <h3 className="text-xl font-bold font-serif text-kairos-dark text-center mb-4">
+              What You'll Unlock
+            </h3>
+            <p className="text-center text-kairos-dark/70 mb-6 text-sm">
+              AI-powered insights will analyze your journal to reveal hidden patterns
             </p>
-            <button onClick={() => navigate('/app/timeline')} className="btn-primary">
-              <Sparkles className="w-5 h-5" />
-              Back to Timeline
-            </button>
+
+            {/* Blurred Dummy Cards */}
+            <div className="space-y-4 relative">
+              {/* Blur Overlay */}
+              <div className="absolute inset-0 backdrop-blur-sm bg-white/10 z-10 rounded-xl flex items-center justify-center">
+                <div className="text-center">
+                  <Sparkles className="w-12 h-12 text-kairos-gold mx-auto mb-3 animate-pulse" />
+                  <p className="text-lg font-semibold text-kairos-dark">Coming Soon</p>
+                </div>
+              </div>
+
+              {/* Dummy Card 1 - Emotional */}
+              <div className="card-glass opacity-60">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-kairos-gold to-kairos-purple flex items-center justify-center text-white">
+                    <Heart className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="h-5 bg-kairos-border/30 rounded mb-2 w-3/4"></div>
+                    <div className="h-4 bg-kairos-border/20 rounded mb-1 w-full"></div>
+                    <div className="h-4 bg-kairos-border/20 rounded mb-1 w-5/6"></div>
+                    <div className="h-4 bg-kairos-border/20 rounded w-4/6"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dummy Card 2 - Temporal */}
+              <div className="card-glass opacity-60">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-kairos-purple to-kairos-pink flex items-center justify-center text-white">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="h-5 bg-kairos-border/30 rounded mb-2 w-2/3"></div>
+                    <div className="h-4 bg-kairos-border/20 rounded mb-1 w-full"></div>
+                    <div className="h-4 bg-kairos-border/20 rounded mb-1 w-5/6"></div>
+                    <div className="h-4 bg-kairos-border/20 rounded w-3/4"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dummy Card 3 - Cognitive */}
+              <div className="card-glass opacity-60">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-kairos-pink to-kairos-border flex items-center justify-center text-white">
+                    <Brain className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="h-5 bg-kairos-border/30 rounded mb-2 w-4/5"></div>
+                    <div className="h-4 bg-kairos-border/20 rounded mb-1 w-full"></div>
+                    <div className="h-4 bg-kairos-border/20 rounded mb-1 w-4/5"></div>
+                    <div className="h-4 bg-kairos-border/20 rounded w-2/3"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
