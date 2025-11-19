@@ -57,13 +57,25 @@ export const hasUnlockedPatterns = (
 export const getPatternUnlockProgress = (
   totalEntries: number,
   firstEntryDate: string | null
-): { entries: number; days: number; entriesNeeded: number; daysNeeded: number } => {
-  const days = firstEntryDate ? calculateDaysSinceFirstEntry(firstEntryDate) : 0;
+): {
+  entries: number;
+  entriesTotal: number;
+  days: number;
+  daysTotal: number;
+  entriesPercentage: number;
+  daysPercentage: number;
+} => {
+  const daysCalculated = firstEntryDate ? calculateDaysSinceFirstEntry(firstEntryDate) : 0;
+  const entriesCapped = Math.min(totalEntries, 7);
+  const daysCapped = Math.min(daysCalculated, 7);
+
   return {
-    entries: totalEntries,
-    days: Math.min(days, 7),
-    entriesNeeded: Math.max(7 - totalEntries, 0),
-    daysNeeded: Math.max(7 - days, 0),
+    entries: entriesCapped,
+    entriesTotal: 7,
+    days: daysCapped,
+    daysTotal: 7,
+    entriesPercentage: (entriesCapped / 7) * 100,
+    daysPercentage: (daysCapped / 7) * 100,
   };
 };
 

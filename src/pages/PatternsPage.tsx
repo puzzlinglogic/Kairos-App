@@ -18,7 +18,14 @@ export const PatternsPage: React.FC = () => {
   const [unlocked, setUnlocked] = useState(false);
   const [error, setError] = useState('');
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
-  const [progress, setProgress] = useState({ entries: 0, days: 0, entriesNeeded: 7, daysNeeded: 7 });
+  const [progress, setProgress] = useState({
+    entries: 0,
+    entriesTotal: 7,
+    days: 0,
+    daysTotal: 7,
+    entriesPercentage: 0,
+    daysPercentage: 0,
+  });
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -130,9 +137,6 @@ export const PatternsPage: React.FC = () => {
 
   // Not unlocked yet - Show Progress Dashboard
   if (!unlocked) {
-    const entriesProgress = (progress.entries / 7) * 100;
-    const daysProgress = (progress.days / 7) * 100;
-
     return (
       <div className="min-h-screen bg-gradient-primary relative overflow-hidden">
         <FloatingShape className="top-10 -left-20" animation="slow" size={400} />
@@ -162,18 +166,18 @@ export const PatternsPage: React.FC = () => {
                       <span className="font-semibold text-kairos-dark">Journal Entries</span>
                     </div>
                     <span className="text-sm font-bold text-kairos-dark">
-                      {progress.entries} / 7
+                      {progress.entries} / {progress.entriesTotal}
                     </span>
                   </div>
                   <div className="w-full h-3 bg-kairos-border/30 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-kairos-purple to-kairos-pink transition-all duration-500"
-                      style={{ width: `${entriesProgress}%` }}
+                      style={{ width: `${progress.entriesPercentage}%` }}
                     />
                   </div>
-                  {progress.entriesNeeded > 0 && (
+                  {progress.entries < progress.entriesTotal && (
                     <p className="text-xs text-kairos-dark/60 mt-1">
-                      {progress.entriesNeeded} more {progress.entriesNeeded === 1 ? 'entry' : 'entries'} needed
+                      {progress.entriesTotal - progress.entries} more {progress.entriesTotal - progress.entries === 1 ? 'entry' : 'entries'} needed
                     </p>
                   )}
                 </div>
@@ -186,18 +190,18 @@ export const PatternsPage: React.FC = () => {
                       <span className="font-semibold text-kairos-dark">Days of Practice</span>
                     </div>
                     <span className="text-sm font-bold text-kairos-dark">
-                      {progress.days} / 7
+                      {progress.days} / {progress.daysTotal}
                     </span>
                   </div>
                   <div className="w-full h-3 bg-kairos-border/30 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-kairos-gold to-kairos-purple transition-all duration-500"
-                      style={{ width: `${daysProgress}%` }}
+                      style={{ width: `${progress.daysPercentage}%` }}
                     />
                   </div>
-                  {progress.daysNeeded > 0 && (
+                  {progress.days < progress.daysTotal && (
                     <p className="text-xs text-kairos-dark/60 mt-1">
-                      {progress.daysNeeded} more {progress.daysNeeded === 1 ? 'day' : 'days'} needed
+                      {progress.daysTotal - progress.days} more {progress.daysTotal - progress.days === 1 ? 'day' : 'days'} needed
                     </p>
                   )}
                 </div>
