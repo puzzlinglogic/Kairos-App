@@ -6,7 +6,7 @@ import { generatePatterns, getUserPatterns, hasPatternsGenerated } from '../lib/
 import { hasUnlockedPatterns } from '../lib/helpers';
 import { supabase } from '../lib/supabase';
 import type { Pattern } from '../lib/supabase';
-import type { PatternInsight } from '../lib/ai';
+import type { PatternInsight } from '../lib/supabase';
 import { Sparkles, Loader, Zap, TrendingUp, Heart, Calendar, Brain, Lock, Crown } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';

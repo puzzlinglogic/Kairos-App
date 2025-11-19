@@ -1,43 +1,26 @@
 import { supabase } from './supabase';
-import { getUserEntries } from './entries';
-import { analyzePatternsQuick, analyzePatternsDeep, type PatternInsight } from './ai';
 import type { Pattern } from './supabase';
 
 /**
- * Generate patterns for a user (runs both Tier 1 and Tier 2 analysis)
+ * Generate patterns by calling the backend API
+ * This replaces the client-side AI logic
  */
-export const generatePatterns = async (userId: string): Promise<PatternInsight[]> => {
+export const generatePatterns = async (userId: string): Promise<void> => {
   try {
-    // Get all user entries
-    const entries = await getUserEntries(userId);
+    const response = await fetch('/api/generate-patterns', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
 
-    if (entries.length < 7) {
-      throw new Error('Need at least 7 entries to generate patterns');
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to generate patterns');
     }
 
-    // Tier 1: Quick analysis (Haiku)
-    console.log('Running Tier 1 analysis...');
-    const quickAnalysis = await analyzePatternsQuick(entries);
-
-    // Tier 2: Deep insights (Sonnet)
-    console.log('Running Tier 2 analysis...');
-    const insights = await analyzePatternsDeep(entries, quickAnalysis);
-
-    // Save patterns to database
-    for (const insight of insights) {
-      await savePattern(userId, {
-        pattern_type: 'ai_insight',
-        pattern_data: {
-          ...insight,
-          wordFrequency: quickAnalysis.wordFrequency,
-          themes: quickAnalysis.themes,
-          generatedAt: new Date().toISOString(),
-        },
-        insight_text: insight.description,
-      });
-    }
-
-    return insights;
+    // The API handles saving to the DB, so we just return success
+    return;
   } catch (error) {
     console.error('Pattern generation error:', error);
     throw error;
@@ -45,28 +28,7 @@ export const generatePatterns = async (userId: string): Promise<PatternInsight[]
 };
 
 /**
- * Save a pattern to the database
- */
-export const savePattern = async (
-  userId: string,
-  pattern: {
-    pattern_type: string;
-    pattern_data: any;
-    insight_text?: string;
-  }
-): Promise<void> => {
-  const { error } = await supabase.from('patterns').insert({
-    user_id: userId,
-    pattern_type: pattern.pattern_type,
-    pattern_data: pattern.pattern_data,
-    insight_text: pattern.insight_text,
-  });
-
-  if (error) throw error;
-};
-
-/**
- * Get user patterns
+ * Get user patterns (Read-only)
  */
 export const getUserPatterns = async (userId: string): Promise<Pattern[]> => {
   const { data, error } = await supabase
@@ -77,18 +39,6 @@ export const getUserPatterns = async (userId: string): Promise<Pattern[]> => {
 
   if (error) throw error;
   return data as Pattern[];
-};
-
-/**
- * Mark pattern as acknowledged
- */
-export const acknowledgePattern = async (patternId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('patterns')
-    .update({ is_acknowledged: true })
-    .eq('id', patternId);
-
-  if (error) throw error;
 };
 
 /**

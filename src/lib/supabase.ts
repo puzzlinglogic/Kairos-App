@@ -52,3 +52,11 @@ export interface Pattern {
   detected_at: string;
   is_acknowledged: boolean;
 }
+// Add this to the bottom of src/lib/supabase.ts
+
+export interface PatternInsight {
+  title: string;
+  description: string;
+  confidence: 'high' | 'medium' | 'low';
+  category: 'temporal' | 'emotional' | 'behavioral' | 'cognitive';
+}
