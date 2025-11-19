@@ -30,6 +30,112 @@ interface AIResponse {
   patterns: PatternData[];
 }
 
+interface GenerationResult {
+  patterns: PatternData[];
+  model: 'sonnet' | 'haiku';
+}
+
+// Timeout constant (8.5 seconds to stay under Vercel's 10-second limit)
+const SONNET_TIMEOUT_MS = 8500;
+
+/**
+ * Helper function to generate patterns with a specific Claude model
+ */
+async function generateWithModel(
+  model: 'claude-3-5-sonnet-latest' | 'claude-3-haiku-20240307',
+  systemPrompt: string,
+  userPrompt: string
+): Promise<PatternData[]> {
+  const message = await anthropic.messages.create({
+    model,
+    max_tokens: 2048,
+    temperature: 0.7,
+    system: systemPrompt,
+    messages: [
+      {
+        role: 'user',
+        content: userPrompt,
+      },
+    ],
+  });
+
+  // Extract the response text
+  const responseText = message.content[0].type === 'text'
+    ? message.content[0].text
+    : '';
+
+  if (!responseText) {
+    throw new Error('No response text from Claude');
+  }
+
+  // Parse the JSON response
+  let aiResponse: AIResponse;
+  try {
+    // Try to extract JSON if it's wrapped in markdown code blocks
+    const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/) || responseText.match(/\{[\s\S]*\}/);
+    const jsonText = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : responseText;
+    aiResponse = JSON.parse(jsonText);
+  } catch (parseError) {
+    console.error('Failed to parse Claude response:', responseText);
+    throw new Error('Failed to parse AI response as JSON');
+  }
+
+  // Validate response structure
+  if (!aiResponse.patterns || !Array.isArray(aiResponse.patterns) || aiResponse.patterns.length !== 3) {
+    throw new Error('AI response does not contain exactly 3 patterns');
+  }
+
+  return aiResponse.patterns;
+}
+
+/**
+ * Creates a timeout promise that rejects after the specified duration
+ */
+function createTimeout(ms: number): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Timeout')), ms);
+  });
+}
+
+/**
+ * Attempts to generate patterns with Sonnet, falling back to Haiku if it times out
+ */
+async function generatePatternsWithFallback(
+  systemPrompt: string,
+  userPrompt: string
+): Promise<GenerationResult> {
+  try {
+    // Race Sonnet against the timeout
+    const patterns = await Promise.race([
+      generateWithModel('claude-3-5-sonnet-latest', systemPrompt, userPrompt),
+      createTimeout(SONNET_TIMEOUT_MS),
+    ]);
+
+    // Sonnet finished in time
+    console.log('✓ Sonnet completed successfully');
+    return { patterns, model: 'sonnet' };
+  } catch (error: any) {
+    // Check if it was a timeout
+    if (error.message === 'Timeout') {
+      console.warn('⚠ Sonnet timed out, falling back to Haiku');
+
+      // Fallback to Haiku
+      try {
+        const patterns = await generateWithModel('claude-3-haiku-20240307', systemPrompt, userPrompt);
+        console.log('✓ Haiku completed successfully');
+        return { patterns, model: 'haiku' };
+      } catch (haikuError) {
+        console.error('✗ Haiku also failed:', haikuError);
+        throw new Error('Both Sonnet and Haiku failed to generate patterns');
+      }
+    } else {
+      // Sonnet failed for a different reason
+      console.error('✗ Sonnet failed:', error.message);
+      throw error;
+    }
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
   if (req.method !== 'POST') {
@@ -110,45 +216,8 @@ Return your analysis as a JSON object with this exact structure:
 
 Here is the JSON:`;
 
-    // Call Claude API
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-latest',
-      max_tokens: 2048,
-      temperature: 0.7,
-      system: systemPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: userPrompt,
-        },
-      ],
-    });
-
-    // Extract the response text
-    const responseText = message.content[0].type === 'text'
-      ? message.content[0].text
-      : '';
-
-    if (!responseText) {
-      throw new Error('No response text from Claude');
-    }
-
-    // Parse the JSON response
-    let aiResponse: AIResponse;
-    try {
-      // Try to extract JSON if it's wrapped in markdown code blocks
-      const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/) || responseText.match(/\{[\s\S]*\}/);
-      const jsonText = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : responseText;
-      aiResponse = JSON.parse(jsonText);
-    } catch (parseError) {
-      console.error('Failed to parse Claude response:', responseText);
-      throw new Error('Failed to parse AI response as JSON');
-    }
-
-    // Validate response structure
-    if (!aiResponse.patterns || !Array.isArray(aiResponse.patterns) || aiResponse.patterns.length !== 3) {
-      throw new Error('AI response does not contain exactly 3 patterns');
-    }
+    // Generate patterns with fallback mechanism
+    const result = await generatePatternsWithFallback(systemPrompt, userPrompt);
 
     // Delete old unacknowledged patterns for this user (keep things fresh)
     await supabase
@@ -158,7 +227,7 @@ Here is the JSON:`;
       .eq('is_acknowledged', false);
 
     // Insert new patterns into the database
-    const patternsToInsert = aiResponse.patterns.map((pattern) => ({
+    const patternsToInsert = result.patterns.map((pattern) => ({
       user_id: userId,
       pattern_type: 'ai_insight',
       pattern_data: {
@@ -180,11 +249,14 @@ Here is the JSON:`;
       return res.status(500).json({ error: 'Failed to save patterns to database' });
     }
 
-    // Return success
+    // Return success with metadata
     return res.status(200).json({
       success: true,
-      patterns: aiResponse.patterns,
-      message: `Successfully generated ${aiResponse.patterns.length} patterns`,
+      patterns: result.patterns,
+      meta: {
+        model: result.model,
+      },
+      message: `Successfully generated ${result.patterns.length} patterns using ${result.model}`,
     });
 
   } catch (error: any) {
