@@ -52,17 +52,23 @@ export const getPatternUnlockProgress = (
 };
 
 // --- Streak & Angel Number Logic ---
-export const getStreakMilestone = (streak: number) => {
-  if (streak >= 777) return { number: 777, message: 'Divine Completion' };
-  if (streak >= 333) return { number: 333, message: 'Mastery' };
-  if (streak >= 111) return { number: 111, message: 'Intuition' };
-  if (streak >= 77) return { number: 77, message: 'Deep Insight' };
-  if (streak >= 21) return { number: 21, message: 'Habit Formed' };
-  if (streak >= 7) return { number: 7, message: 'Foundation' };
-  return { number: 3, message: 'Beginning' };
+export const getStreakMilestone = (streak: number): string | null => {
+  if (streak >= 777) return '✨ 777 - Divine Completion achieved!';
+  if (streak >= 333) return '💫 333 - Mastery unlocked!';
+  if (streak >= 111) return '🔮 111 - Intuition flowing!';
+  if (streak >= 77) return '⭐ 77 - Deep insight activated!';
+  if (streak >= 21) return '🌟 21 days - Habit formed!';
+  if (streak >= 7) return '✨ 7 days - Foundation set!';
+  return null;
 };
 
-export const getAngelNumberMessage = (streak: number) => {
-  const next = getStreakMilestone(streak + 1);
-  return `Keep going to unlock ${next.number}`;
+export const getAngelNumberMessage = (totalEntries: number): { meaning: string; description: string } | null => {
+  if (totalEntries === 777) return { meaning: '777 - Divine Completion', description: 'You are in perfect alignment' };
+  if (totalEntries === 333) return { meaning: '333 - Mastery', description: 'You are supported by the universe' };
+  if (totalEntries === 111) return { meaning: '111 - Intuition', description: 'Your inner wisdom is awakening' };
+  if (totalEntries === 77) return { meaning: '77 - Deep Insight', description: 'Patterns are revealing themselves' };
+  if (totalEntries === 33) return { meaning: '33 - Master Number', description: 'Creative energy is flowing' };
+  if (totalEntries === 21) return { meaning: '21 - Habit Formed', description: 'Your practice is taking root' };
+  if (totalEntries === 7) return { meaning: '7 - Foundation', description: 'The beginning of wisdom' };
+  return null;
 };
