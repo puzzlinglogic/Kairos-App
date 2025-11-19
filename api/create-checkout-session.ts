@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Service role key for admin operations
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -23,7 +23,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing userId or email' });
     }
 
-    // Check if user already has a Stripe customer ID
     const { data: profile } = await supabase
       .from('profiles')
       .select('stripe_customer_id')
@@ -32,24 +31,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let customerId = profile?.stripe_customer_id;
 
-    // Create Stripe customer if doesn't exist
     if (!customerId) {
       const customer = await stripe.customers.create({
         email,
-        metadata: {
-          supabase_user_id: userId,
-        },
+        metadata: { supabase_user_id: userId },
       });
       customerId = customer.id;
 
-      // Save customer ID to database
       await supabase
         .from('profiles')
         .update({ stripe_customer_id: customerId })
         .eq('id', userId);
     }
 
-    // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
@@ -60,12 +54,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.VITE_APP_URL}/app/patterns?success=true`,
+      // UPDATED: We now send them back to /subscribe with the session_id
+      success_url: `${process.env.VITE_APP_URL}/app/subscribe?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.VITE_APP_URL}/app/subscribe?canceled=true`,
       subscription_data: {
-        metadata: {
-          supabase_user_id: userId,
-        },
+        metadata: { supabase_user_id: userId },
       },
     });
 
