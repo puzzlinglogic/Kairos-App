@@ -228,17 +228,17 @@ export const TimelinePage: React.FC = () => {
           <div className="space-y-4">
             {entries.map((entry) => (
               <div key={entry.id} className="card-glass">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm text-kairos-dark/60">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      {formatDate(entry.created_at)}
+                <div className="flex items-start mb-3">
+                  <div className="flex flex-col md:flex-row md:items-center md:gap-3 min-w-0 flex-1">
+                    <div className="flex items-center gap-2 text-sm font-medium text-kairos-dark/70">
+                      <Calendar className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{formatDate(entry.created_at)}</span>
                     </div>
-                    <div className="text-xs text-kairos-dark/40">
+                    <div className="text-xs text-kairos-dark/50 md:border-l md:border-kairos-dark/20 md:pl-3">
                       {formatTime(entry.created_at)}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-1 ml-auto flex-shrink-0">
                     <button
                       onClick={() => setEditingEntry(entry)}
                       className="p-1.5 rounded-lg opacity-50 hover:opacity-100 hover:bg-kairos-purple/10 transition-all"
