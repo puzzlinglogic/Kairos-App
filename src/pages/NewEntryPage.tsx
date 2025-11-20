@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { createEntry } from '../lib/entries';
 import { uploadPhoto, compressImage } from '../lib/storage';
 import { getRandomPrompt } from '../lib/prompts';
-import { Sparkles, ImagePlus, CheckCircle, Loader, X, Shuffle } from 'lucide-react';
+import { Sparkles, ImagePlus, CheckCircle, Loader, X, RefreshCw } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 
@@ -17,20 +17,17 @@ export const NewEntryPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
-  const [currentPrompt, setCurrentPrompt] = useState<string | null>(null);
+  const [activePrompt, setActivePrompt] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleGetPrompt = () => {
-    setCurrentPrompt(getRandomPrompt());
+    setActivePrompt(getRandomPrompt());
   };
 
-  const handleUsePrompt = () => {
-    if (currentPrompt) {
-      setEntryText((prev) => (prev ? `${prev}\n\n${currentPrompt}` : currentPrompt));
-      setCurrentPrompt(null);
-    }
+  const handleDismissPrompt = () => {
+    setActivePrompt(null);
   };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,36 +175,40 @@ export const NewEntryPage: React.FC = () => {
                 <label htmlFor="entry" className="block text-sm font-semibold text-kairos-dark">
                   Your thoughts
                 </label>
-                <button
-                  type="button"
-                  onClick={handleGetPrompt}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-kairos-purple hover:text-kairos-gold transition-colors"
-                >
-                  {currentPrompt ? (
-                    <>
-                      <Shuffle className="w-3.5 h-3.5" />
-                      Shuffle Prompt
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Need Inspiration?
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Prompt Display */}
-              {currentPrompt && (
-                <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-kairos-gold/10 to-kairos-purple/10 border border-kairos-gold/20">
-                  <p className="text-sm text-kairos-dark italic mb-3">"{currentPrompt}"</p>
+                {!activePrompt && (
                   <button
                     type="button"
-                    onClick={handleUsePrompt}
-                    className="text-xs font-medium text-kairos-purple hover:text-kairos-gold transition-colors"
+                    onClick={handleGetPrompt}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-kairos-purple hover:text-kairos-gold transition-colors"
                   >
-                    Use this prompt →
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Need Inspiration?
                   </button>
+                )}
+              </div>
+
+              {/* Prompt Card */}
+              {activePrompt && (
+                <div className="mb-4 p-4 rounded-xl bg-kairos-purple/5 border border-kairos-gold/30">
+                  <p className="text-sm font-medium text-kairos-dark mb-3">{activePrompt}</p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleGetPrompt}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-kairos-purple hover:text-kairos-gold transition-colors"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Shuffle
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDismissPrompt}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-kairos-dark/50 hover:text-kairos-dark transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      Close
+                    </button>
+                  </div>
                 </div>
               )}
 
