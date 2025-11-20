@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { createEntry } from '../lib/entries';
 import { uploadPhoto, compressImage } from '../lib/storage';
-import { Sparkles, ImagePlus, CheckCircle, Loader, X } from 'lucide-react';
+import { getRandomPrompt } from '../lib/prompts';
+import { Sparkles, ImagePlus, CheckCircle, Loader, X, Shuffle } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 
@@ -16,9 +17,21 @@ export const NewEntryPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [currentPrompt, setCurrentPrompt] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const handleGetPrompt = () => {
+    setCurrentPrompt(getRandomPrompt());
+  };
+
+  const handleUsePrompt = () => {
+    if (currentPrompt) {
+      setEntryText((prev) => (prev ? `${prev}\n\n${currentPrompt}` : currentPrompt));
+      setCurrentPrompt(null);
+    }
+  };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -161,9 +174,43 @@ export const NewEntryPage: React.FC = () => {
           <div className="card-glass">
             {/* Main Entry */}
             <div className="mb-6">
-              <label htmlFor="entry" className="block text-sm font-semibold text-kairos-dark mb-3">
-                Your thoughts
-              </label>
+              <div className="flex items-center justify-between mb-3">
+                <label htmlFor="entry" className="block text-sm font-semibold text-kairos-dark">
+                  Your thoughts
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGetPrompt}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-kairos-purple hover:text-kairos-gold transition-colors"
+                >
+                  {currentPrompt ? (
+                    <>
+                      <Shuffle className="w-3.5 h-3.5" />
+                      Shuffle Prompt
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Need Inspiration?
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Prompt Display */}
+              {currentPrompt && (
+                <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-kairos-gold/10 to-kairos-purple/10 border border-kairos-gold/20">
+                  <p className="text-sm text-kairos-dark italic mb-3">"{currentPrompt}"</p>
+                  <button
+                    type="button"
+                    onClick={handleUsePrompt}
+                    className="text-xs font-medium text-kairos-purple hover:text-kairos-gold transition-colors"
+                  >
+                    Use this prompt →
+                  </button>
+                </div>
+              )}
+
               <textarea
                 id="entry"
                 value={entryText}
