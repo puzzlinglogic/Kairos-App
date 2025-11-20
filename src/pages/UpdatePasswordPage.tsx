@@ -76,8 +76,11 @@ export const UpdatePasswordPage: React.FC = () => {
 
       if (error) throw error;
 
-      alert('Password updated successfully!');
-      navigate('/app/timeline');
+      // Sign out user so they can re-login with new password
+      await supabase.auth.signOut();
+
+      alert('Password updated. Please sign in with your new password.');
+      navigate('/signin');
     } catch (err: any) {
       setError(err.message || 'Failed to update password');
     } finally {
