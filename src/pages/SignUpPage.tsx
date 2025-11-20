@@ -32,7 +32,7 @@ export const SignUpPage: React.FC = () => {
 
     try {
       await signUp(email, password);
-      navigate('/app'); // Redirect to app after successful signup
+      navigate('/verify-email'); // Redirect to verify email page
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
     } finally {

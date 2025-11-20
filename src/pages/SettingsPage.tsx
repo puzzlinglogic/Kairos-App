@@ -136,7 +136,7 @@ export default function SettingsPage() {
 
       <AppNav />
 
-      <div className="relative z-10 container-content py-8 md:py-12">
+      <div className="relative z-10 container-content py-8 pb-32 md:py-12">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="flex items-center gap-3 mb-8">
