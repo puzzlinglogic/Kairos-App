@@ -23,14 +23,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing userId or email' });
     }
 
+    // Check if user already has an active subscription
     const { data: profile } = await supabase
       .from('profiles')
-      .select('stripe_customer_id')
+      .select('stripe_customer_id, subscription_status')
       .eq('id', userId)
       .single();
 
     let customerId = profile?.stripe_customer_id;
 
+    // If user already has active subscription, redirect to billing portal instead
+    if (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing') {
+      if (!customerId) {
+        return res.status(400).json({ error: 'Active subscription but no customer ID found' });
+      }
+
+      // Create billing portal session to manage existing subscription
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${process.env.VITE_APP_URL}/app/settings`,
+      });
+
+      return res.status(200).json({ url: portalSession.url });
+    }
+
+    // No active subscription - create new checkout session
     if (!customerId) {
       const customer = await stripe.customers.create({
         email,
