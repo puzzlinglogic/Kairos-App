@@ -12,7 +12,7 @@ import {
   getStreakMilestone,
   getAngelNumberMessage,
 } from '../lib/helpers';
-import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2 } from 'lucide-react';
+import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 import { EditEntryModal } from '../components/EditEntryModal';
@@ -24,8 +24,16 @@ export const TimelinePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAngelMessage, setShowAngelMessage] = useState(false);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+  const [showStreakBanner, setShowStreakBanner] = useState(
+    () => !localStorage.getItem('hideStreakBanner')
+  );
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const dismissStreakBanner = () => {
+    setShowStreakBanner(false);
+    localStorage.setItem('hideStreakBanner', 'true');
+  };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this entry?')) {
@@ -177,9 +185,16 @@ export const TimelinePage: React.FC = () => {
           </div>
 
           {/* Streak Milestone Message */}
-          {streakMessage && (
-            <div className="mb-4">
+          {streakMessage && showStreakBanner && (
+            <div className="mb-4 relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kairos-purple/10 border border-kairos-purple/20">
               <p className="text-sm font-medium text-kairos-purple">{streakMessage}</p>
+              <button
+                onClick={dismissStreakBanner}
+                className="p-0.5 rounded-full hover:bg-kairos-purple/20 transition-colors"
+                title="Dismiss"
+              >
+                <X className="w-3.5 h-3.5 text-kairos-purple/60" />
+              </button>
             </div>
           )}
 
