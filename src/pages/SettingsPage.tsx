@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Crown, CreditCard, LogOut, Loader } from 'lucide-react';
+import { Settings, Crown, CreditCard, LogOut, Loader, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import type { Profile } from '../lib/supabase';
@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [managingSubscription, setManagingSubscription] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -74,6 +75,46 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    // Double confirmation
+    const firstConfirm = window.confirm('Are you sure? This cannot be undone.');
+    if (!firstConfirm) return;
+
+    const secondConfirm = window.confirm(
+      'Really sure? All journal entries will be lost forever.'
+    );
+    if (!secondConfirm) return;
+
+    setDeletingAccount(true);
+
+    try {
+      const response = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete account');
+      }
+
+      // Sign out and redirect to home
+      await supabase.auth.signOut();
+      navigate('/');
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      alert(error.message || 'Failed to delete account');
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   if (loading) {
@@ -193,6 +234,31 @@ export default function SettingsPage() {
             >
               <LogOut className="w-5 h-5" />
               Sign Out
+            </button>
+          </div>
+
+          {/* Danger Zone */}
+          <div className="card-glass border-2 border-red-200 mt-6">
+            <h2 className="text-lg font-semibold text-red-600 mb-4">Danger Zone</h2>
+            <p className="text-sm text-kairos-dark/70 mb-4">
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </p>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deletingAccount}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {deletingAccount ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-5 h-5" />
+                  Delete Account
+                </>
+              )}
             </button>
           </div>
         </div>
