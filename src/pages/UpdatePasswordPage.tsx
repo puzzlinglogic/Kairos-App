@@ -1,27 +1,41 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Sparkles, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { Sparkles, Lock, AlertCircle } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 
-export const SignInPage: React.FC = () => {
-  const [email, setEmail] = useState('');
+export const UpdatePasswordPage: React.FC = () => {
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      navigate('/app'); // Redirect to app after successful signin
+      const { error } = await supabase.auth.updateUser({ password });
+
+      if (error) throw error;
+
+      alert('Password updated successfully!');
+      navigate('/app/timeline');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      setError(err.message || 'Failed to update password');
     } finally {
       setLoading(false);
     }
@@ -42,18 +56,18 @@ export const SignInPage: React.FC = () => {
               Kairos
             </h1>
           </Link>
-          <p className="text-kairos-dark/70">Welcome back</p>
+          <p className="text-kairos-dark/70">Set your new password</p>
         </div>
 
-        {/* Sign In Card */}
+        {/* Update Password Card */}
         <div className="card-glass">
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kairos-purple/20 mb-4">
               <Sparkles className="w-4 h-4 text-kairos-purple" />
-              <span className="text-sm font-medium text-kairos-dark">Sign In</span>
+              <span className="text-sm font-medium text-kairos-dark">New Password</span>
             </div>
             <h2 className="text-2xl font-bold font-serif text-kairos-dark">
-              Continue Your Journey
+              Update Password
             </h2>
           </div>
 
@@ -65,29 +79,10 @@ export const SignInPage: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Input */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-kairos-dark mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-kairos-dark/40" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input pl-10"
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Password Input */}
+            {/* New Password Input */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-kairos-dark mb-2">
-                Password
+                New Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-kairos-dark/40" />
@@ -97,20 +92,31 @@ export const SignInPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input pl-10"
-                  placeholder="Your password"
+                  placeholder="Enter new password"
                   required
+                  minLength={6}
                 />
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="text-right">
-              <Link
-                to="/forgot-password"
-                className="text-sm text-kairos-purple hover:text-kairos-gold transition-colors"
-              >
-                Forgot Password?
-              </Link>
+            {/* Confirm Password Input */}
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-kairos-dark mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-kairos-dark/40" />
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="input pl-10"
+                  placeholder="Confirm new password"
+                  required
+                  minLength={6}
+                />
+              </div>
             </div>
 
             {/* Submit Button */}
@@ -120,24 +126,24 @@ export const SignInPage: React.FC = () => {
               className="btn-primary w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                'Signing In...'
+                'Updating...'
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  Sign In
+                  Update Password
                 </>
               )}
             </button>
           </form>
 
-          {/* Sign Up Link */}
+          {/* Back to Sign In Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-kairos-dark/70">
-              Don't have an account?{' '}
-              <Link to="/signup" className="font-semibold text-kairos-purple hover:text-kairos-gold transition-colors">
-                Create one
-              </Link>
-            </p>
+            <Link
+              to="/signin"
+              className="text-sm font-semibold text-kairos-purple hover:text-kairos-gold transition-colors"
+            >
+              Back to Sign In
+            </Link>
           </div>
         </div>
 
