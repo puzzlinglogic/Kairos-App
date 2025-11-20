@@ -141,7 +141,7 @@ export const LandingPage: React.FC = () => {
             </div>
             <h3 className="h3 mb-2 text-kairos-dark">Pattern Detection</h3>
             <p className="text-muted">
-              AI-powered insights reveal recurring themes and moments in your life after just 7 days.
+              Deep narrative insights reveal recurring themes and moments in your life after just 7 days.
             </p>
           </Card>
 
@@ -204,9 +204,11 @@ export const LandingPage: React.FC = () => {
                 Streak tracking
               </li>
             </ul>
-            <Button variant="secondary" className="w-full">
-              Start Free
-            </Button>
+            <Link to="/signup">
+              <Button variant="secondary" className="w-full">
+                Start Free
+              </Button>
+            </Link>
           </Card>
 
           <Card variant="glass" className="border-2 border-kairos-gold/50 relative">
@@ -232,7 +234,7 @@ export const LandingPage: React.FC = () => {
                 <div className="w-5 h-5 rounded-full bg-kairos-gold flex items-center justify-center">
                   <Sparkles className="w-3 h-3 text-white" />
                 </div>
-                Advanced AI pattern analysis
+                Deep narrative pattern analysis
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-kairos-gold flex items-center justify-center">
@@ -247,22 +249,22 @@ export const LandingPage: React.FC = () => {
                 Export & custom themes
               </li>
             </ul>
-            <Button variant="primary" className="w-full">
-              Get Premium
-            </Button>
+            <Link to="/signup">
+              <Button variant="primary" className="w-full">
+                Get Premium
+              </Button>
+            </Link>
           </Card>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="container-narrow py-8 border-t border-kairos-border/30">
-        <div className="flex items-center justify-between text-sm text-muted">
-          <p>© 2025 Kairos. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-kairos-dark transition-colors">Privacy</a>
-            <a href="#" className="hover:text-kairos-dark transition-colors">Terms</a>
-            <a href="#" className="hover:text-kairos-dark transition-colors">Contact</a>
-          </div>
+      <footer className="container-narrow py-12 border-t border-kairos-border/30">
+        <div className="flex flex-col items-center justify-center gap-4 text-sm">
+          <Link to="/privacy" className="text-kairos-gold/60 hover:text-kairos-gold transition-colors">
+            Privacy & Terms
+          </Link>
+          <p className="text-kairos-gold/60">© 2025 Kairos. All rights reserved.</p>
         </div>
       </footer>
     </div>
