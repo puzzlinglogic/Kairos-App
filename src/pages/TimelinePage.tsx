@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserEntries, getUserStats, getFirstEntryDate } from '../lib/entries';
+import { supabase } from '../lib/supabase';
 import type { Entry, UserStats } from '../lib/supabase';
 import {
   hasUnlockedPatterns,
@@ -11,9 +12,10 @@ import {
   getStreakMilestone,
   getAngelNumberMessage,
 } from '../lib/helpers';
-import { Sparkles, Plus, Calendar, Flame, Loader, Zap } from 'lucide-react';
+import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2 } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
+import { EditEntryModal } from '../components/EditEntryModal';
 
 export const TimelinePage: React.FC = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -21,8 +23,53 @@ export const TimelinePage: React.FC = () => {
   const [firstEntryDate, setFirstEntryDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAngelMessage, setShowAngelMessage] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this entry?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('entries').delete().eq('id', id);
+
+      if (error) throw error;
+
+      // Update local state immediately for fast UI
+      setEntries((prev) => prev.filter((entry) => entry.id !== id));
+
+      // Update stats
+      if (stats) {
+        setStats({
+          ...stats,
+          total_entries: stats.total_entries - 1,
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+      alert('Failed to delete entry');
+    }
+  };
+
+  const handleEdit = async (newText: string) => {
+    if (!editingEntry) return;
+
+    const { error } = await supabase
+      .from('entries')
+      .update({ entry_text: newText })
+      .eq('id', editingEntry.id);
+
+    if (error) throw error;
+
+    // Update local state
+    setEntries((prev) =>
+      prev.map((entry) =>
+        entry.id === editingEntry.id ? { ...entry, entry_text: newText } : entry
+      )
+    );
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -171,8 +218,24 @@ export const TimelinePage: React.FC = () => {
                     <Calendar className="w-4 h-4" />
                     {formatDate(entry.created_at)}
                   </div>
-                  <div className="text-xs text-kairos-dark/40">
-                    {formatTime(entry.created_at)}
+                  <div className="flex items-center gap-2">
+                    <div className="text-xs text-kairos-dark/40 mr-2">
+                      {formatTime(entry.created_at)}
+                    </div>
+                    <button
+                      onClick={() => setEditingEntry(entry)}
+                      className="p-1.5 rounded-lg opacity-50 hover:opacity-100 hover:bg-kairos-purple/10 transition-all"
+                      title="Edit entry"
+                    >
+                      <Pencil className="w-4 h-4 text-kairos-purple" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(entry.id)}
+                      className="p-1.5 rounded-lg opacity-50 hover:opacity-100 hover:bg-red-50 transition-all"
+                      title="Delete entry"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </button>
                   </div>
                 </div>
 
@@ -280,6 +343,14 @@ export const TimelinePage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Edit Entry Modal */}
+      <EditEntryModal
+        isOpen={!!editingEntry}
+        onClose={() => setEditingEntry(null)}
+        onSave={handleEdit}
+        initialText={editingEntry?.entry_text || ''}
+      />
     </div>
   );
 };
