@@ -229,14 +229,16 @@ export const TimelinePage: React.FC = () => {
             {entries.map((entry) => (
               <div key={entry.id} className="card-glass">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2 text-sm text-kairos-dark/60">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(entry.created_at)}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-xs text-kairos-dark/40 mr-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm text-kairos-dark/60">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      {formatDate(entry.created_at)}
+                    </div>
+                    <div className="text-xs text-kairos-dark/40">
                       {formatTime(entry.created_at)}
                     </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => setEditingEntry(entry)}
                       className="p-1.5 rounded-lg opacity-50 hover:opacity-100 hover:bg-kairos-purple/10 transition-all"
@@ -344,7 +346,7 @@ export const TimelinePage: React.FC = () => {
               777 - Awakening Complete
             </h3>
             <p className="text-kairos-dark/70 mb-6">
-              You've unlocked AI-powered pattern detection. Discover insights hidden in your journal.
+              You've unlocked deep narrative pattern detection. Discover insights hidden in your journal.
             </p>
             <Link to="/app/patterns">
               <button className="btn-primary">

@@ -153,7 +153,7 @@ export const PatternsPage: React.FC = () => {
                 777 Challenge Progress
               </h2>
               <p className="text-kairos-dark/70 mb-8">
-                Unlock AI-powered pattern insights by completing 7 entries AND 7 days of journaling
+                Unlock deep narrative insights by completing 7 entries AND 7 days of journaling
               </p>
 
               {/* Progress Bars */}
@@ -221,7 +221,7 @@ export const PatternsPage: React.FC = () => {
               What You'll Unlock
             </h3>
             <p className="text-center text-kairos-dark/70 mb-6 text-sm">
-              AI-powered insights will analyze your journal to reveal hidden patterns
+              Your journal will be analyzed to reveal hidden patterns
             </p>
 
             {/* Blurred Dummy Cards */}
@@ -325,7 +325,7 @@ export const PatternsPage: React.FC = () => {
                   Subscribe to Access Your Patterns
                 </h2>
                 <p className="text-kairos-dark/70 mb-6 max-w-md mx-auto">
-                  You've unlocked pattern detection! Subscribe for $3.33/month to access AI-powered insights from your journal.
+                  You've unlocked pattern detection! Subscribe for $3.33/month to access deep narrative insights from your journal.
                 </p>
                 <button onClick={() => navigate('/app/subscribe')} className="btn-primary mb-4">
                   <Crown className="w-5 h-5" />

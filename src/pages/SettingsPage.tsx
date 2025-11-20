@@ -183,7 +183,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div>
                   <p className="text-kairos-dark/70">
-                    You have access to AI-powered pattern detection and insights.
+                    You have access to deep narrative pattern detection and insights.
                   </p>
                 </div>
                 <button
