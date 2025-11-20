@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Sparkles, Lock, AlertCircle } from 'lucide-react';
+import { Sparkles, Lock, AlertCircle, Loader } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 
 export const UpdatePasswordPage: React.FC = () => {
@@ -9,7 +9,51 @@ export const UpdatePasswordPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(true);
+  const [sessionReady, setSessionReady] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    // Listen for auth state changes (including PASSWORD_RECOVERY)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+        setSessionReady(true);
+        setVerifying(false);
+      }
+    });
+
+    // Also check for existing session (in case auth state already processed)
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
+        setSessionReady(true);
+        setVerifying(false);
+        return;
+      }
+
+      // If no session found immediately, wait 2 seconds for it to be processed
+      timeoutId = setTimeout(async () => {
+        const { data: { session: retrySession } } = await supabase.auth.getSession();
+
+        if (retrySession) {
+          setSessionReady(true);
+        } else {
+          setError('Session expired or invalid link. Please request a new password reset.');
+        }
+        setVerifying(false);
+      }, 2000);
+    };
+
+    checkSession();
+
+    return () => {
+      subscription.unsubscribe();
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +84,49 @@ export const UpdatePasswordPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Show loading state while verifying session
+  if (verifying) {
+    return (
+      <div className="min-h-screen bg-gradient-landing relative overflow-hidden flex items-center justify-center">
+        <FloatingShape className="top-10 -left-20" animation="slow" size={400} />
+        <FloatingShape className="top-1/3 right-10" animation="medium" size={350} />
+        <FloatingShape className="bottom-20 left-1/4" animation="slow" size={300} />
+
+        <div className="relative z-10 text-center">
+          <Loader className="w-8 h-8 text-kairos-purple animate-spin mx-auto mb-4" />
+          <p className="text-kairos-dark/70">Verifying secure link...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if session not established
+  if (!sessionReady && error) {
+    return (
+      <div className="min-h-screen bg-gradient-landing relative overflow-hidden flex items-center justify-center">
+        <FloatingShape className="top-10 -left-20" animation="slow" size={400} />
+        <FloatingShape className="top-1/3 right-10" animation="medium" size={350} />
+        <FloatingShape className="bottom-20 left-1/4" animation="slow" size={300} />
+
+        <div className="relative z-10 w-full max-w-md px-6">
+          <div className="card-glass text-center">
+            <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200">
+              <AlertCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+            <Link
+              to="/forgot-password"
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              <Sparkles className="w-5 h-5" />
+              Request New Link
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-landing relative overflow-hidden flex items-center justify-center">
