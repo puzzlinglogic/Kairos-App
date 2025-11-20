@@ -142,9 +142,12 @@ export const SignInPage: React.FC = () => {
         </div>
 
         {/* Back to Home */}
-        <div className="text-center mt-6">
-          <Link to="/" className="text-sm text-kairos-dark/60 hover:text-kairos-dark transition-colors">
+        <div className="text-center mt-6 space-y-2">
+          <Link to="/" className="block text-sm text-kairos-dark/60 hover:text-kairos-dark transition-colors">
             ← Back to home
+          </Link>
+          <Link to="/privacy" className="block text-xs text-kairos-dark/40 hover:text-kairos-dark/60 transition-colors">
+            Privacy & Terms
           </Link>
         </div>
       </div>

@@ -261,6 +261,18 @@ export default function SettingsPage() {
               )}
             </button>
           </div>
+
+          {/* Privacy Link */}
+          <div className="text-center mt-6">
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-kairos-dark/40 hover:text-kairos-dark/60 transition-colors"
+            >
+              Privacy & Terms
+            </a>
+          </div>
         </div>
       </div>
     </div>
