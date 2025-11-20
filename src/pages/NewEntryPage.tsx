@@ -189,24 +189,24 @@ export const NewEntryPage: React.FC = () => {
 
               {/* Prompt Card */}
               {activePrompt && (
-                <div className="mb-4 p-4 rounded-xl bg-kairos-purple/5 border border-kairos-gold/30">
-                  <p className="text-sm font-medium text-kairos-dark mb-3">{activePrompt}</p>
-                  <div className="flex items-center gap-3">
+                <div className="mb-3 p-3 rounded-xl bg-kairos-purple/5 border border-kairos-gold/30 flex items-start justify-between gap-3">
+                  <p className="text-sm text-kairos-dark/80 italic flex-1">"{activePrompt}"</p>
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       type="button"
                       onClick={handleGetPrompt}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-kairos-purple hover:text-kairos-gold transition-colors"
+                      className="p-1.5 rounded-lg text-kairos-purple/60 hover:text-kairos-purple hover:bg-kairos-purple/10 transition-all"
+                      title="Shuffle prompt"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
-                      Shuffle
                     </button>
                     <button
                       type="button"
                       onClick={handleDismissPrompt}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-kairos-dark/50 hover:text-kairos-dark transition-colors"
+                      className="p-1.5 rounded-lg text-kairos-dark/40 hover:text-kairos-dark hover:bg-kairos-dark/10 transition-all"
+                      title="Close"
                     >
                       <X className="w-3.5 h-3.5" />
-                      Close
                     </button>
                   </div>
                 </div>
