@@ -16,6 +16,7 @@ import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X } from 
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 import { EditEntryModal } from '../components/EditEntryModal';
+import { WelcomeModal } from '../components/WelcomeModal';
 
 export const TimelinePage: React.FC = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -27,8 +28,14 @@ export const TimelinePage: React.FC = () => {
   const [showStreakBanner, setShowStreakBanner] = useState(
     () => !localStorage.getItem('hideStreakBanner')
   );
+  const [showWelcome, setShowWelcome] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('hasSeenWelcome', 'true');
+  };
 
   const dismissStreakBanner = () => {
     setShowStreakBanner(false);
@@ -98,6 +105,11 @@ export const TimelinePage: React.FC = () => {
         if (angelMessage && statsData.total_entries > 0) {
           setShowAngelMessage(true);
           setTimeout(() => setShowAngelMessage(false), 5000);
+        }
+
+        // Show welcome modal for new users
+        if (statsData.total_entries === 0 && !localStorage.getItem('hasSeenWelcome')) {
+          setShowWelcome(true);
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -368,6 +380,9 @@ export const TimelinePage: React.FC = () => {
         onSave={handleEdit}
         initialText={editingEntry?.entry_text || ''}
       />
+
+      {/* Welcome Modal */}
+      <WelcomeModal isOpen={showWelcome} onClose={handleCloseWelcome} />
     </div>
   );
 };
