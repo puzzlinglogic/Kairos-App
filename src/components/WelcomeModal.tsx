@@ -46,7 +46,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose }) =
               <span className="font-semibold text-kairos-dark">Ramble freely.</span> Vent about your day. List your anxieties. Share your dreams.
             </p>
             <p className="text-kairos-dark/80">
-              The deeper and messier you are, the better the AI can find your hidden patterns.
+              The deeper and messier you are, the easier it is to reveal your hidden patterns.
             </p>
           </div>
 
