@@ -359,7 +359,7 @@ export const PatternsPage: React.FC = () => {
           <h1 className="text-3xl md:text-4xl font-bold font-serif text-kairos-dark mb-2">
             Your Patterns
           </h1>
-          <p className="text-kairos-dark/70">AI-discovered insights from your journal</p>
+          <p className="text-kairos-dark/70">Hidden wisdom discovered from your journey</p>
         </div>
 
         {/* Generate Button */}
@@ -370,7 +370,7 @@ export const PatternsPage: React.FC = () => {
               Ready to discover your patterns?
             </h3>
             <p className="text-kairos-dark/70 mb-6 max-w-md mx-auto">
-              Our AI will analyze your journal entries to find meaningful patterns, themes, and insights.
+              Your journal entries will be analyzed to find meaningful patterns, themes, and insights.
             </p>
             <button
               onClick={handleGeneratePatterns}

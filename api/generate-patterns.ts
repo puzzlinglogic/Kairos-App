@@ -186,6 +186,8 @@ Your task is to analyze journal entries and identify deep, non-obvious patterns.
 
 Focus on insights that would genuinely help the person understand themselves better. Avoid generic or obvious observations.
 
+Address the user directly as 'You'. Do NOT refer to them as 'the author' or 'the user'. Write in a warm, empathetic, but objective tone.
+
 You must return EXACTLY 3 patterns in strict JSON format. Each pattern must have:
 - title: A clear, specific title (max 60 characters)
 - description: A detailed explanation of the pattern and its significance (2-3 sentences)
