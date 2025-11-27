@@ -12,11 +12,13 @@ import {
   getStreakMilestone,
   getAngelNumberMessage,
 } from '../lib/helpers';
-import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X, Search } from 'lucide-react';
+import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X, Search, List } from 'lucide-react';
+import { isSameDay } from 'date-fns';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 import { EditEntryModal } from '../components/EditEntryModal';
 import { WelcomeModal } from '../components/WelcomeModal';
+import { CalendarView } from '../components/CalendarView';
 
 export const TimelinePage: React.FC = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -33,6 +35,8 @@ export const TimelinePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Entry[]>([]);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [filterDate, setFilterDate] = useState<Date | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -119,6 +123,26 @@ export const TimelinePage: React.FC = () => {
       console.error('Error searching entries:', error);
       setSearchResults([]);
     }
+  };
+
+  const handleSelectDate = (date: Date | null) => {
+    setFilterDate(date);
+  };
+
+  // Get filtered entries based on search or date filter
+  const getDisplayedEntries = () => {
+    if (isSearching) {
+      return searchResults;
+    }
+
+    if (filterDate) {
+      return entries.filter((entry) => {
+        const entryDate = new Date(entry.created_at);
+        return isSameDay(entryDate, filterDate);
+      });
+    }
+
+    return entries.slice(0, visibleCount);
   };
 
   useEffect(() => {
@@ -262,6 +286,47 @@ export const TimelinePage: React.FC = () => {
             </div>
           </div>
 
+          {/* View Mode Toggle */}
+          <div className="mb-4 flex items-center justify-center gap-2">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                viewMode === 'list'
+                  ? 'bg-kairos-purple text-white'
+                  : 'bg-white/60 text-kairos-dark/60 hover:bg-white/80'
+              }`}
+            >
+              <List className="w-4 h-4" />
+              List
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                viewMode === 'calendar'
+                  ? 'bg-kairos-purple text-white'
+                  : 'bg-white/60 text-kairos-dark/60 hover:bg-white/80'
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+              Calendar
+            </button>
+          </div>
+
+          {/* Date Filter Indicator */}
+          {filterDate && (
+            <div className="mb-4 flex items-center justify-center gap-2">
+              <span className="text-sm text-kairos-dark/70">
+                Showing entries from {filterDate.toLocaleDateString()}
+              </span>
+              <button
+                onClick={() => setFilterDate(null)}
+                className="text-xs px-3 py-1 rounded-full bg-kairos-purple/10 text-kairos-purple hover:bg-kairos-purple/20 transition-colors"
+              >
+                Clear Filter
+              </button>
+            </div>
+          )}
+
           {/* New Entry Button */}
           <Link to="/app/new">
             <button className="btn-primary">
@@ -270,6 +335,17 @@ export const TimelinePage: React.FC = () => {
             </button>
           </Link>
         </div>
+
+        {/* Calendar View */}
+        {viewMode === 'calendar' && entries.length > 0 && (
+          <div className="mb-8">
+            <CalendarView
+              entries={entries}
+              onSelectDate={handleSelectDate}
+              selectedDate={filterDate}
+            />
+          </div>
+        )}
 
         {/* Entries Timeline */}
         {entries.length === 0 && !isSearching ? (
@@ -298,9 +374,19 @@ export const TimelinePage: React.FC = () => {
               No entries match "{searchQuery}"
             </p>
           </div>
+        ) : filterDate && getDisplayedEntries().length === 0 ? (
+          <div className="card-glass text-center py-12">
+            <Calendar className="w-12 h-12 text-kairos-dark/30 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold font-serif text-kairos-dark mb-2">
+              No entries on this date
+            </h3>
+            <p className="text-kairos-dark/70">
+              You didn't journal on {filterDate.toLocaleDateString()}
+            </p>
+          </div>
         ) : (
           <div className="space-y-4">
-            {(isSearching ? searchResults : entries.slice(0, visibleCount)).map((entry) => (
+            {getDisplayedEntries().map((entry) => (
               <div key={entry.id} className="card-glass">
                 <div className="flex items-start mb-3">
                   <div className="flex flex-col md:flex-row md:items-center md:gap-3 min-w-0 flex-1">
@@ -361,7 +447,7 @@ export const TimelinePage: React.FC = () => {
             ))}
 
             {/* Load More Button */}
-            {!isSearching && visibleCount < entries.length && (
+            {!isSearching && !filterDate && visibleCount < entries.length && (
               <div className="text-center pt-4">
                 <button
                   onClick={() => setVisibleCount((prev) => prev + 7)}
