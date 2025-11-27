@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserEntries, getUserStats, getFirstEntryDate } from '../lib/entries';
@@ -13,7 +13,7 @@ import {
   getAngelNumberMessage,
 } from '../lib/helpers';
 import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X, Search, List, Image } from 'lucide-react';
-import { isSameDay } from 'date-fns';
+import { isSameDay, parseISO } from 'date-fns';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 import { EditEntryModal } from '../components/EditEntryModal';
@@ -131,20 +131,23 @@ export const TimelinePage: React.FC = () => {
   };
 
   // Get filtered entries based on search or date filter
-  const getDisplayedEntries = () => {
-    if (isSearching) {
-      return searchResults;
-    }
+  const displayedEntries = useMemo(() => {
+    let filtered = isSearching ? searchResults : entries;
 
+    // Filter by Calendar Date
     if (filterDate) {
-      return entries.filter((entry) => {
-        const entryDate = new Date(entry.created_at);
-        return isSameDay(entryDate, filterDate);
-      });
+      filtered = filtered.filter((entry) =>
+        isSameDay(parseISO(entry.created_at), filterDate)
+      );
     }
 
-    return entries.slice(0, visibleCount);
-  };
+    // Handle Pagination (only if NOT searching and NOT filtering by date)
+    if (!isSearching && !filterDate && viewMode === 'list') {
+      return filtered.slice(0, visibleCount);
+    }
+
+    return filtered;
+  }, [entries, searchResults, isSearching, visibleCount, viewMode, filterDate]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -393,7 +396,7 @@ export const TimelinePage: React.FC = () => {
               No entries match "{searchQuery}"
             </p>
           </div>
-        ) : viewMode === 'list' && filterDate && getDisplayedEntries().length === 0 ? (
+        ) : viewMode === 'list' && filterDate && displayedEntries.length === 0 ? (
           <div className="card-glass text-center py-12">
             <Calendar className="w-12 h-12 text-kairos-dark/30 mx-auto mb-4" />
             <h3 className="text-xl font-semibold font-serif text-kairos-dark mb-2">
@@ -405,7 +408,7 @@ export const TimelinePage: React.FC = () => {
           </div>
         ) : viewMode === 'list' ? (
           <div className="space-y-4">
-            {getDisplayedEntries().map((entry) => (
+            {displayedEntries.map((entry) => (
               <div key={entry.id} className="card-glass">
                 <div className="flex items-start mb-3">
                   <div className="flex flex-col md:flex-row md:items-center md:gap-3 min-w-0 flex-1">
