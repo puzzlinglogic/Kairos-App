@@ -42,7 +42,7 @@ const SONNET_TIMEOUT_MS = 8500;
  * Helper function to generate patterns with a specific Claude model
  */
 async function generateWithModel(
-  model: 'claude-3-5-sonnet-latest' | 'claude-3-haiku-20240307',
+  model: 'claude-3-5-sonnet-20241022' | 'claude-3-haiku-20240307',
   systemPrompt: string,
   userPrompt: string
 ): Promise<PatternData[]> {
@@ -107,7 +107,7 @@ async function generatePatternsWithFallback(
   try {
     // Race Sonnet against the timeout
     const patterns = await Promise.race([
-      generateWithModel('claude-3-5-sonnet-latest', systemPrompt, userPrompt),
+      generateWithModel('claude-3-5-sonnet-20241022', systemPrompt, userPrompt),
       createTimeout(SONNET_TIMEOUT_MS),
     ]);
 
