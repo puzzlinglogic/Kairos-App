@@ -42,7 +42,7 @@ const SONNET_TIMEOUT_MS = 8500;
  * Helper function to generate patterns with a specific Claude model
  */
 async function generateWithModel(
-  model: 'claude-3-5-sonnet-20241022' | 'claude-3-haiku-20240307',
+  model: 'claude-3-5-sonnet-20240620' | 'claude-3-haiku-20240307',
   systemPrompt: string,
   userPrompt: string
 ): Promise<PatternData[]> {
@@ -107,7 +107,7 @@ async function generatePatternsWithFallback(
   try {
     // Race Sonnet against the timeout
     const patterns = await Promise.race([
-      generateWithModel('claude-3-5-sonnet-20241022', systemPrompt, userPrompt),
+      generateWithModel('claude-3-5-sonnet-20240620', systemPrompt, userPrompt),
       createTimeout(SONNET_TIMEOUT_MS),
     ]);
 
@@ -115,23 +115,17 @@ async function generatePatternsWithFallback(
     console.log('✓ Sonnet completed successfully');
     return { patterns, model: 'sonnet' };
   } catch (error: any) {
-    // Check if it was a timeout
-    if (error.message === 'Timeout') {
-      console.warn('⚠ Sonnet timed out, falling back to Haiku');
+    // Always fall back to Haiku on any error (timeout, 404, network, etc.)
+    console.warn('⚠ Sonnet failed (Error: ' + error.message + '), falling back to Haiku');
 
-      // Fallback to Haiku
-      try {
-        const patterns = await generateWithModel('claude-3-haiku-20240307', systemPrompt, userPrompt);
-        console.log('✓ Haiku completed successfully');
-        return { patterns, model: 'haiku' };
-      } catch (haikuError) {
-        console.error('✗ Haiku also failed:', haikuError);
-        throw new Error('Both Sonnet and Haiku failed to generate patterns');
-      }
-    } else {
-      // Sonnet failed for a different reason
-      console.error('✗ Sonnet failed:', error.message);
-      throw error;
+    // Fallback to Haiku
+    try {
+      const patterns = await generateWithModel('claude-3-haiku-20240307', systemPrompt, userPrompt);
+      console.log('✓ Haiku completed successfully');
+      return { patterns, model: 'haiku' };
+    } catch (haikuError) {
+      console.error('✗ Haiku also failed:', haikuError);
+      throw new Error('Both Sonnet and Haiku failed to generate patterns');
     }
   }
 }
