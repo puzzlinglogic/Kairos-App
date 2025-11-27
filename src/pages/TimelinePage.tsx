@@ -12,7 +12,7 @@ import {
   getStreakMilestone,
   getAngelNumberMessage,
 } from '../lib/helpers';
-import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X } from 'lucide-react';
+import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X, Search } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 import { EditEntryModal } from '../components/EditEntryModal';
@@ -30,6 +30,9 @@ export const TimelinePage: React.FC = () => {
   );
   const [showWelcome, setShowWelcome] = useState(false);
   const [visibleCount, setVisibleCount] = useState(7);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<Entry[]>([]);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -85,6 +88,37 @@ export const TimelinePage: React.FC = () => {
         entry.id === editingEntry.id ? { ...entry, entry_text: newText } : entry
       )
     );
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+
+    if (!query.trim()) {
+      // Clear search when query is empty
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    if (!user) return;
+
+    setIsSearching(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .ilike('entry_text', `%${query}%`)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setSearchResults(data || []);
+    } catch (error) {
+      console.error('Error searching entries:', error);
+      setSearchResults([]);
+    }
   };
 
   useEffect(() => {
@@ -214,6 +248,20 @@ export const TimelinePage: React.FC = () => {
             </div>
           )}
 
+          {/* Search Bar */}
+          <div className="mb-4 max-w-md mx-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-kairos-dark/40" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search your memories..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/60 backdrop-blur-md border border-kairos-border/30 focus:border-kairos-purple focus:outline-none focus:ring-2 focus:ring-kairos-purple/20 text-kairos-dark placeholder-kairos-dark/40 transition-all"
+              />
+            </div>
+          </div>
+
           {/* New Entry Button */}
           <Link to="/app/new">
             <button className="btn-primary">
@@ -224,7 +272,7 @@ export const TimelinePage: React.FC = () => {
         </div>
 
         {/* Entries Timeline */}
-        {entries.length === 0 ? (
+        {entries.length === 0 && !isSearching ? (
           <div className="card-glass text-center py-12">
             <Sparkles className="w-12 h-12 text-kairos-gold/40 mx-auto mb-4" />
             <h3 className="text-xl font-semibold font-serif text-kairos-dark mb-2">
@@ -240,9 +288,19 @@ export const TimelinePage: React.FC = () => {
               </button>
             </Link>
           </div>
+        ) : isSearching && searchResults.length === 0 ? (
+          <div className="card-glass text-center py-12">
+            <Search className="w-12 h-12 text-kairos-dark/30 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold font-serif text-kairos-dark mb-2">
+              No memories found
+            </h3>
+            <p className="text-kairos-dark/70">
+              No entries match "{searchQuery}"
+            </p>
+          </div>
         ) : (
           <div className="space-y-4">
-            {entries.slice(0, visibleCount).map((entry) => (
+            {(isSearching ? searchResults : entries.slice(0, visibleCount)).map((entry) => (
               <div key={entry.id} className="card-glass">
                 <div className="flex items-start mb-3">
                   <div className="flex flex-col md:flex-row md:items-center md:gap-3 min-w-0 flex-1">
@@ -303,7 +361,7 @@ export const TimelinePage: React.FC = () => {
             ))}
 
             {/* Load More Button */}
-            {visibleCount < entries.length && (
+            {!isSearching && visibleCount < entries.length && (
               <div className="text-center pt-4">
                 <button
                   onClick={() => setVisibleCount((prev) => prev + 7)}
