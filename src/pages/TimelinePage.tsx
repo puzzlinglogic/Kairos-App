@@ -362,7 +362,7 @@ export const TimelinePage: React.FC = () => {
         {/* Gallery View */}
         {viewMode === 'gallery' && (
           <div className="mb-8">
-            <PhotoGalleryView entries={getDisplayedEntries()} />
+            <PhotoGalleryView entries={isSearching ? searchResults : entries} />
           </div>
         )}
 
