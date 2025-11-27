@@ -353,13 +353,97 @@ export const TimelinePage: React.FC = () => {
 
         {/* Calendar View */}
         {viewMode === 'calendar' && entries.length > 0 && (
-          <div className="mb-8">
-            <CalendarView
-              entries={entries}
-              onSelectDate={handleSelectDate}
-              selectedDate={filterDate}
-            />
-          </div>
+          <>
+            <div className="mb-8">
+              <CalendarView
+                entries={entries}
+                onSelectDate={handleSelectDate}
+                selectedDate={filterDate}
+              />
+            </div>
+
+            {/* Entries for selected date */}
+            {filterDate && (
+              <div className="mt-8">
+                <h3 className="text-lg font-serif font-semibold text-kairos-dark mb-4">
+                  Entries for {formatDate(filterDate.toISOString())}
+                </h3>
+                {displayedEntries.length === 0 ? (
+                  <div className="card-glass text-center py-12">
+                    <Calendar className="w-12 h-12 text-kairos-dark/30 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold font-serif text-kairos-dark mb-2">
+                      No entries on this date
+                    </h3>
+                    <p className="text-kairos-dark/70">
+                      You didn't journal on {filterDate.toLocaleDateString()}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {displayedEntries.map((entry) => (
+                      <div key={entry.id} className="card-glass">
+                        <div className="flex items-start mb-3">
+                          <div className="flex flex-col md:flex-row md:items-center md:gap-3 min-w-0 flex-1">
+                            <div className="flex items-center gap-2 text-sm font-medium text-kairos-dark/70">
+                              <Calendar className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">{formatDate(entry.created_at)}</span>
+                            </div>
+                            <div className="text-xs text-kairos-dark/50 md:border-l md:border-kairos-dark/20 md:pl-3">
+                              {formatTime(entry.created_at)}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 ml-auto flex-shrink-0">
+                            <button
+                              onClick={() => setEditingEntry(entry)}
+                              className="p-1.5 rounded-lg opacity-50 hover:opacity-100 hover:bg-kairos-purple/10 transition-all"
+                              title="Edit entry"
+                            >
+                              <Pencil className="w-4 h-4 text-kairos-purple" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(entry.id)}
+                              className="p-1.5 rounded-lg opacity-50 hover:opacity-100 hover:bg-red-50 transition-all"
+                              title="Delete entry"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <p className="text-kairos-dark leading-relaxed mb-4 whitespace-pre-wrap">
+                          {entry.entry_text}
+                        </p>
+
+                        {entry.photo_url && (
+                          <div className="mb-4 rounded-xl overflow-hidden">
+                            <img
+                              src={entry.photo_url}
+                              alt="Entry photo"
+                              className="w-full h-auto object-cover"
+                            />
+                          </div>
+                        )}
+
+                        {entry.guided_response && (
+                          <div className="pt-4 border-t border-kairos-border/30">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Sparkles className="w-4 h-4 text-kairos-gold" />
+                              <span className="text-sm font-semibold text-kairos-dark">
+                                Reflection
+                              </span>
+                            </div>
+                            <p className="text-sm text-kairos-dark/70 leading-relaxed whitespace-pre-wrap">
+                              {entry.guided_response}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
 
         {/* Gallery View */}
