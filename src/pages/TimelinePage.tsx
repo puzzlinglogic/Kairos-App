@@ -29,6 +29,7 @@ export const TimelinePage: React.FC = () => {
     () => !localStorage.getItem('hideStreakBanner')
   );
   const [showWelcome, setShowWelcome] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(7);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -241,7 +242,7 @@ export const TimelinePage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {entries.map((entry) => (
+            {entries.slice(0, visibleCount).map((entry) => (
               <div key={entry.id} className="card-glass">
                 <div className="flex items-start mb-3">
                   <div className="flex flex-col md:flex-row md:items-center md:gap-3 min-w-0 flex-1">
@@ -300,6 +301,18 @@ export const TimelinePage: React.FC = () => {
                 )}
               </div>
             ))}
+
+            {/* Load More Button */}
+            {visibleCount < entries.length && (
+              <div className="text-center pt-4">
+                <button
+                  onClick={() => setVisibleCount((prev) => prev + 7)}
+                  className="btn-ghost"
+                >
+                  Load Previous Entries
+                </button>
+              </div>
+            )}
           </div>
         )}
 
