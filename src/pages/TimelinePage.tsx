@@ -187,7 +187,10 @@ export const TimelinePage: React.FC = () => {
             )}
 
             {patternsUnlocked && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple border-2 border-kairos-gold">
+              <div
+                onClick={() => navigate('/app/patterns')}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-kairos-gold to-kairos-purple border-2 border-kairos-gold cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+              >
                 <Zap className="w-5 h-5 text-white" />
                 <span className="font-semibold text-white">
                   777 - Patterns Unlocked
