@@ -12,13 +12,14 @@ import {
   getStreakMilestone,
   getAngelNumberMessage,
 } from '../lib/helpers';
-import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X, Search, List } from 'lucide-react';
+import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X, Search, List, Image } from 'lucide-react';
 import { isSameDay } from 'date-fns';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 import { EditEntryModal } from '../components/EditEntryModal';
 import { WelcomeModal } from '../components/WelcomeModal';
 import { CalendarView } from '../components/CalendarView';
+import { PhotoGalleryView } from '../components/PhotoGalleryView';
 
 export const TimelinePage: React.FC = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -35,7 +36,7 @@ export const TimelinePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Entry[]>([]);
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'gallery'>('list');
   const [filterDate, setFilterDate] = useState<Date | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -310,6 +311,17 @@ export const TimelinePage: React.FC = () => {
               <Calendar className="w-4 h-4" />
               Calendar
             </button>
+            <button
+              onClick={() => setViewMode('gallery')}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                viewMode === 'gallery'
+                  ? 'bg-kairos-purple text-white'
+                  : 'bg-white/60 text-kairos-dark/60 hover:bg-white/80'
+              }`}
+            >
+              <Image className="w-4 h-4" />
+              Gallery
+            </button>
           </div>
 
           {/* Date Filter Indicator */}
@@ -347,8 +359,15 @@ export const TimelinePage: React.FC = () => {
           </div>
         )}
 
-        {/* Entries Timeline */}
-        {entries.length === 0 && !isSearching ? (
+        {/* Gallery View */}
+        {viewMode === 'gallery' && (
+          <div className="mb-8">
+            <PhotoGalleryView entries={getDisplayedEntries()} />
+          </div>
+        )}
+
+        {/* Entries Timeline (List View) */}
+        {viewMode === 'list' && entries.length === 0 && !isSearching ? (
           <div className="card-glass text-center py-12">
             <Sparkles className="w-12 h-12 text-kairos-gold/40 mx-auto mb-4" />
             <h3 className="text-xl font-semibold font-serif text-kairos-dark mb-2">
@@ -364,7 +383,7 @@ export const TimelinePage: React.FC = () => {
               </button>
             </Link>
           </div>
-        ) : isSearching && searchResults.length === 0 ? (
+        ) : viewMode === 'list' && isSearching && searchResults.length === 0 ? (
           <div className="card-glass text-center py-12">
             <Search className="w-12 h-12 text-kairos-dark/30 mx-auto mb-4" />
             <h3 className="text-xl font-semibold font-serif text-kairos-dark mb-2">
@@ -374,7 +393,7 @@ export const TimelinePage: React.FC = () => {
               No entries match "{searchQuery}"
             </p>
           </div>
-        ) : filterDate && getDisplayedEntries().length === 0 ? (
+        ) : viewMode === 'list' && filterDate && getDisplayedEntries().length === 0 ? (
           <div className="card-glass text-center py-12">
             <Calendar className="w-12 h-12 text-kairos-dark/30 mx-auto mb-4" />
             <h3 className="text-xl font-semibold font-serif text-kairos-dark mb-2">
@@ -384,7 +403,7 @@ export const TimelinePage: React.FC = () => {
               You didn't journal on {filterDate.toLocaleDateString()}
             </p>
           </div>
-        ) : (
+        ) : viewMode === 'list' ? (
           <div className="space-y-4">
             {getDisplayedEntries().map((entry) => (
               <div key={entry.id} className="card-glass">
@@ -458,7 +477,7 @@ export const TimelinePage: React.FC = () => {
               </div>
             )}
           </div>
-        )}
+        ) : null}
 
         {/* 777 Pattern Detection Progress */}
         {!patternsUnlocked && entries.length > 0 && (
