@@ -13,7 +13,7 @@ import {
   getAngelNumberMessage,
 } from '../lib/helpers';
 import { Sparkles, Plus, Calendar, Flame, Loader, Zap, Pencil, Trash2, X, Search, List, Image } from 'lucide-react';
-import { isSameDay, parseISO } from 'date-fns';
+import { isSameDay, parseISO, subDays } from 'date-fns';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
 import { EditEntryModal } from '../components/EditEntryModal';
@@ -28,9 +28,15 @@ export const TimelinePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAngelMessage, setShowAngelMessage] = useState(false);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
-  const [showStreakBanner, setShowStreakBanner] = useState(
-    () => !localStorage.getItem('hideStreakBanner')
-  );
+  const [dismissedMilestones, setDismissedMilestones] = useState<Set<number>>(() => {
+    const dismissed = new Set<number>();
+    [7, 21, 77, 111, 333, 777].forEach((milestone) => {
+      if (localStorage.getItem(`hideStreakBanner_${milestone}`)) {
+        dismissed.add(milestone);
+      }
+    });
+    return dismissed;
+  });
   const [showWelcome, setShowWelcome] = useState(false);
   const [visibleCount, setVisibleCount] = useState(7);
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,9 +52,20 @@ export const TimelinePage: React.FC = () => {
     localStorage.setItem('hasSeenWelcome', 'true');
   };
 
-  const dismissStreakBanner = () => {
-    setShowStreakBanner(false);
-    localStorage.setItem('hideStreakBanner', 'true');
+  // Helper to get the current streak milestone tier
+  const getStreakMilestoneTier = (streak: number): number | null => {
+    if (streak >= 777) return 777;
+    if (streak >= 333) return 333;
+    if (streak >= 111) return 111;
+    if (streak >= 77) return 77;
+    if (streak >= 21) return 21;
+    if (streak >= 7) return 7;
+    return null;
+  };
+
+  const dismissStreakBanner = (milestone: number) => {
+    setDismissedMilestones((prev) => new Set([...prev, milestone]));
+    localStorage.setItem(`hideStreakBanner_${milestone}`, 'true');
   };
 
   const handleDelete = async (id: string) => {
@@ -231,14 +248,22 @@ export const TimelinePage: React.FC = () => {
 
           {/* Stats */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
-            {stats && stats.current_streak > 0 && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kairos-gold/20 border border-kairos-gold/30">
-                <Flame className="w-5 h-5 text-kairos-gold" />
-                <span className="font-semibold text-kairos-dark">
-                  {stats.current_streak} day streak
-                </span>
-              </div>
-            )}
+            {stats && (() => {
+              const today = new Date();
+              const yesterday = subDays(today, 1);
+              const lastEntry = stats.last_entry_date ? parseISO(stats.last_entry_date) : null;
+              const isStreakAlive = lastEntry && (isSameDay(lastEntry, today) || isSameDay(lastEntry, yesterday));
+              const displayStreak = isStreakAlive ? stats.current_streak : 0;
+
+              return displayStreak > 0 ? (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kairos-gold/20 border border-kairos-gold/30">
+                  <Flame className="w-5 h-5 text-kairos-gold" />
+                  <span className="font-semibold text-kairos-dark">
+                    {displayStreak} day streak
+                  </span>
+                </div>
+              ) : null;
+            })()}
 
             {stats && (
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kairos-purple/20 border border-kairos-purple/30">
@@ -263,18 +288,22 @@ export const TimelinePage: React.FC = () => {
           </div>
 
           {/* Streak Milestone Message */}
-          {streakMessage && showStreakBanner && (
-            <div className="mb-4 relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kairos-purple/10 border border-kairos-purple/20">
-              <p className="text-sm font-medium text-kairos-purple">{streakMessage}</p>
-              <button
-                onClick={dismissStreakBanner}
-                className="p-0.5 rounded-full hover:bg-kairos-purple/20 transition-colors"
-                title="Dismiss"
-              >
-                <X className="w-3.5 h-3.5 text-kairos-purple/60" />
-              </button>
-            </div>
-          )}
+          {streakMessage && (() => {
+            const currentMilestone = getStreakMilestoneTier(stats?.current_streak || 0);
+            if (!currentMilestone || dismissedMilestones.has(currentMilestone)) return null;
+            return (
+              <div className="mb-4 relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kairos-purple/10 border border-kairos-purple/20">
+                <p className="text-sm font-medium text-kairos-purple">{streakMessage}</p>
+                <button
+                  onClick={() => dismissStreakBanner(currentMilestone)}
+                  className="p-0.5 rounded-full hover:bg-kairos-purple/20 transition-colors"
+                  title="Dismiss"
+                >
+                  <X className="w-3.5 h-3.5 text-kairos-purple/60" />
+                </button>
+              </div>
+            );
+          })()}
 
           {/* Search Bar */}
           <div className="mb-4 max-w-md mx-auto">
