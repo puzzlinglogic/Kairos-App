@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserStats, getFirstEntryDate } from '../lib/entries';
@@ -9,6 +9,7 @@ import type { Pattern, PatternInsight } from '../lib/supabase';
 import { Sparkles, Loader, Zap, TrendingUp, Heart, Calendar, Brain, Lock, Crown, BookOpen } from 'lucide-react';
 import { FloatingShape } from '../components/FloatingShape';
 import { AppNav } from '../components/AppNav';
+import { differenceInDays, parseISO } from 'date-fns';
 
 export const PatternsPage: React.FC = () => {
   const [patterns, setPatterns] = useState<Pattern[]>([]);
@@ -76,6 +77,28 @@ export const PatternsPage: React.FC = () => {
 
     loadData();
   }, [user, navigate]);
+
+  // Calculate cooldown for pattern refresh (7-day minimum between refreshes)
+  const refreshCooldown = useMemo(() => {
+    if (patterns.length === 0) {
+      return { canRefresh: true, daysRemaining: 0 };
+    }
+
+    // Find the most recent pattern
+    const mostRecentPattern = patterns.reduce((latest, pattern) => {
+      const patternDate = parseISO(pattern.detected_at);
+      const latestDate = parseISO(latest.detected_at);
+      return patternDate > latestDate ? pattern : latest;
+    });
+
+    const daysSinceLastPattern = differenceInDays(new Date(), parseISO(mostRecentPattern.detected_at));
+    const daysRemaining = Math.max(0, 7 - daysSinceLastPattern);
+
+    return {
+      canRefresh: daysSinceLastPattern >= 7,
+      daysRemaining,
+    };
+  }, [patterns]);
 
   const handleGeneratePatterns = async () => {
     if (!user) return;
@@ -452,13 +475,18 @@ export const PatternsPage: React.FC = () => {
           <div className="text-center mt-8">
             <button
               onClick={handleGeneratePatterns}
-              disabled={generating}
-              className="btn-secondary"
+              disabled={generating || !refreshCooldown.canRefresh}
+              className={`btn-secondary ${!refreshCooldown.canRefresh ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {generating ? (
                 <>
                   <Loader className="w-5 h-5 animate-spin" />
                   Regenerating...
+                </>
+              ) : !refreshCooldown.canRefresh ? (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Next insight available in {refreshCooldown.daysRemaining} day{refreshCooldown.daysRemaining !== 1 ? 's' : ''}
                 </>
               ) : (
                 <>
@@ -468,7 +496,9 @@ export const PatternsPage: React.FC = () => {
               )}
             </button>
             <p className="text-xs text-kairos-dark/50 mt-2">
-              Updates patterns based on all your entries
+              {refreshCooldown.canRefresh
+                ? 'Updates patterns based on all your entries'
+                : 'Pattern refresh available weekly'}
             </p>
           </div>
         )}

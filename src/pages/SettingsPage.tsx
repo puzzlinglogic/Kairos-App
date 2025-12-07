@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Crown, CreditCard, LogOut, Loader, Trash2 } from 'lucide-react';
+import { Settings, Crown, CreditCard, LogOut, Loader, Trash2, Download } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import type { Profile } from '../lib/supabase';
+import type { Profile, Entry } from '../lib/supabase';
 import { AppNav } from '../components/AppNav';
 import { FloatingShape } from '../components/FloatingShape';
 
@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [managingSubscription, setManagingSubscription] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -114,6 +115,113 @@ export default function SettingsPage() {
       alert(error.message || 'Failed to delete account');
     } finally {
       setDeletingAccount(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (!user) return;
+
+    setExporting(true);
+
+    try {
+      // Fetch all entries
+      const { data: entries, error } = await supabase
+        .from('entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      // Format date for display
+      const formatDate = (dateStr: string) => {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        });
+      };
+
+      // Construct HTML string
+      const entriesHtml = (entries || [])
+        .map(
+          (entry: Entry) => `
+          <article style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #e5e5e5;">
+            <h3 style="color: #1f2937; margin-bottom: 0.5rem;">${formatDate(entry.created_at)}</h3>
+            <p style="color: #374151; line-height: 1.7; white-space: pre-wrap;">${entry.entry_text}</p>
+            ${
+              entry.photo_url
+                ? `<img src="${entry.photo_url}" alt="Journal photo" style="max-width: 300px; border-radius: 8px; margin-top: 1rem;" />`
+                : ''
+            }
+            ${
+              entry.guided_response
+                ? `<div style="margin-top: 1rem; padding: 1rem; background-color: #f9fafb; border-radius: 8px;">
+                     <strong style="color: #6b21a8;">Reflection:</strong>
+                     <p style="color: #4b5563; margin-top: 0.5rem; white-space: pre-wrap;">${entry.guided_response}</p>
+                   </div>`
+                : ''
+            }
+          </article>
+        `
+        )
+        .join('');
+
+      const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Kairos Journal</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      background-color: #fafafa;
+      color: #1f2937;
+    }
+    h1 {
+      text-align: center;
+      color: #6b21a8;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 3rem;
+    }
+    article:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Kairos Journal</h1>
+  <p class="subtitle">Exported on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+  ${entriesHtml || '<p style="text-align: center; color: #6b7280;">No entries yet.</p>'}
+</body>
+</html>`;
+
+      // Create Blob and trigger download
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'my-kairos-journal.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error('Error exporting journal:', error);
+      alert(error.message || 'Failed to export journal');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -224,6 +332,31 @@ export default function SettingsPage() {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Export Data */}
+          <div className="card-glass mb-6">
+            <h2 className="text-lg font-semibold text-kairos-dark mb-4">Export Data</h2>
+            <p className="text-sm text-kairos-dark/70 mb-4">
+              Download all your journal entries in a readable HTML format that you can view in any browser.
+            </p>
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="btn-secondary w-full flex items-center justify-center gap-2"
+            >
+              {exporting ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" />
+                  Download Journal (HTML)
+                </>
+              )}
+            </button>
           </div>
 
           {/* Sign Out */}
